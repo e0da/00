@@ -1,3 +1,14 @@
 {
-  "clang.cflags": ["-Weverything", "-pedantic", "-ggdb", "-O3", "-std=c11"]
+  "clang.cflags": [
+    "-Weverything",
+    "-pedantic",
+    "-ggdb",
+    "-O3",
+    "-std=c11"
+  ],
+  "files.associations": {
+    "stdbool.h": "c",
+    "cstdbool": "c",
+    "c++config.h": "c"
+  }
 }
