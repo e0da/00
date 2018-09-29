@@ -23,7 +23,7 @@ web: 00.html
 	bash -c 'source $(EMSDK_ENV); emcc $(BIN).c -s USE_SDL=2 -o $@'
 
 $(EMSDK_ENV):
-	@echo "emsdk_env.sh not found. Install emsdk to $(shell dirname $(EMSDK_ENV))"
+	@echo "$(EMSDK_ENV) not found. Install emsdk to $(shell dirname $(EMSDK_ENV))"
 	false
 
 .PHONY: clean
