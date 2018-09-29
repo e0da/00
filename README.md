@@ -7,6 +7,7 @@ Requirements:
 - make
 - clang
 - SDL2
+- SDL2_image
 - Emscripten (Optional -- build for web)
 
 ```sh
