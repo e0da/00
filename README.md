@@ -7,6 +7,7 @@ Requirements:
 - make
 - clang
 - SDL2
+- Emscripten (Optional -- build for web)
 
 ```sh
 make
@@ -17,6 +18,14 @@ make
 ```sh
 make run
 ```
+
+### Optional - Build for Web
+
+```sh
+make web
+```
+
+Then serve and browse to `00.html`.
 
 ## License and Copyright
 
