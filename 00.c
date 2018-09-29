@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #define WINDOW_TITLE "00: o hai windoe"
@@ -8,6 +9,7 @@
 void warn_unless(const char *warning, void *const ref);
 
 int main() {
+  bool running = false;
   int init = SDL_Init(SDL_INIT_VIDEO);
   warn_unless("SDL_Init failed", &init);
 
@@ -19,11 +21,23 @@ int main() {
   SDL_Surface *const surface = SDL_GetWindowSurface(window);
   warn_unless("SDL_GetWindowSurface failed", surface);
 
-  const unsigned int cyan = SDL_MapRGB(surface->format, 0x00, 0xff, 0xff);
-  SDL_FillRect(surface, NULL, cyan);
+  running = true;
 
-  SDL_UpdateWindowSurface(window);
-  SDL_Delay(2000);
+  while (running) {
+    SDL_Event event;
+    SDL_PollEvent(&event);
+    switch (event.type) {
+    case SDL_QUIT:
+      running = false;
+      break;
+    default:
+      break;
+    }
+    const unsigned int cyan = SDL_MapRGB(surface->format, 0x00, 0xff, 0xff);
+    SDL_FillRect(surface, NULL, cyan);
+    SDL_UpdateWindowSurface(window);
+  }
+
   SDL_DestroyWindow(window);
   SDL_Quit();
 
