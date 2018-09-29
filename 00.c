@@ -5,37 +5,23 @@
 #define WIDTH 1024
 #define HEIGHT 768
 
-enum errorCodes {
-  ERROR_SDL_INIT,
-  ERROR_SDL_CREATE_WINDOW,
-  ERROR_SDL_GET_WINDOW_SURFACE
-};
-
-void printSDLError(const char *error);
+void warn_unless(const char *warning, void *const ref);
 
 int main() {
+  int init = SDL_Init(SDL_INIT_VIDEO);
+  warn_unless("SDL_Init failed", &init);
 
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    printSDLError("SDL_Init");
-    return ERROR_SDL_INIT;
-  }
+  SDL_Window *const window = SDL_CreateWindow(
+      WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH,
+      HEIGHT, SDL_WINDOW_SHOWN);
+  warn_unless("SDL_CreateWindow failed", window);
 
-  SDL_Window *window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED,
-                                        SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT,
-                                        SDL_WINDOW_SHOWN);
-  if (!window) {
-    printSDLError("SDL_CreateWindow");
-    return ERROR_SDL_CREATE_WINDOW;
-  }
+  SDL_Surface *const surface = SDL_GetWindowSurface(window);
+  warn_unless("SDL_GetWindowSurface failed", surface);
 
-  SDL_Surface *screenSurface = SDL_GetWindowSurface(window);
-  if (!screenSurface) {
-    printSDLError("SDL_GetWindowSurface");
-    return ERROR_SDL_GET_WINDOW_SURFACE;
-  }
+  const unsigned int cyan = SDL_MapRGB(surface->format, 0x00, 0xff, 0xff);
+  SDL_FillRect(surface, NULL, cyan);
 
-  const unsigned int cyan = SDL_MapRGB(screenSurface->format, 0x00, 0xff, 0xff);
-  SDL_FillRect(screenSurface, NULL, cyan);
   SDL_UpdateWindowSurface(window);
   SDL_Delay(2000);
   SDL_DestroyWindow(window);
@@ -44,6 +30,8 @@ int main() {
   return 0;
 }
 
-void printSDLError(const char *error) {
-  printf("Context: %s\nSDL_Error: %s\n", error, SDL_GetError());
+void warn_unless(const char *warning, void *const ref) {
+  if (!ref) {
+    printf("WARN: %s\nSDL_Error: %s\n", warning, SDL_GetError());
+  }
 }
