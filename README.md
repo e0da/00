@@ -27,6 +27,11 @@ make web
 
 Then serve and browse to `00.html`.
 
+## TODO
+
+1. Use CMake?
+2. ???
+
 ## License and Copyright
 
 - License: ISC
