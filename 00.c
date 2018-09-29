@@ -7,6 +7,8 @@
 #define HEIGHT 768
 
 void warn_unless(const char *warning, void *const ref);
+void handle_events(bool *running);
+void draw_background(SDL_Surface *surface);
 
 int main() {
   bool running = false;
@@ -24,17 +26,8 @@ int main() {
   running = true;
 
   while (running) {
-    SDL_Event event;
-    SDL_PollEvent(&event);
-    switch (event.type) {
-    case SDL_QUIT:
-      running = false;
-      break;
-    default:
-      break;
-    }
-    const unsigned int cyan = SDL_MapRGB(surface->format, 0x00, 0xff, 0xff);
-    SDL_FillRect(surface, NULL, cyan);
+    handle_events(&running);
+    draw_background(surface);
     SDL_UpdateWindowSurface(window);
   }
 
@@ -48,4 +41,21 @@ void warn_unless(const char *warning, void *const ref) {
   if (!ref) {
     printf("WARN: %s\nSDL_Error: %s\n", warning, SDL_GetError());
   }
+}
+
+void handle_events(bool *running) {
+  SDL_Event event;
+  SDL_PollEvent(&event);
+  switch (event.type) {
+  case SDL_QUIT:
+    *running = false;
+    break;
+  default:
+    break;
+  }
+}
+
+void draw_background(SDL_Surface *surface) {
+  const unsigned int cyan = SDL_MapRGB(surface->format, 0x00, 0xff, 0xff);
+  SDL_FillRect(surface, NULL, cyan);
 }
