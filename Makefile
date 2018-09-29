@@ -1,9 +1,14 @@
 BIN=00
 CC=clang
-CFLAGS=-g -Weverything -O3
+STD=-std=c11
+LIBS=-lSDL2
+OPTIMIZE=-O3
+LINT=-Weverything -pedantic
+DEBUG=-ggdb
+CFLAGS=$(DEBUG) $(LINT) $(OPTIMIZE) $(LIBS) $(STD)
 
 $(BIN): $(BIN).c
-	$(CC) -o $@ $^ $(CFLAGS) -lSDL2
+	$(CC) -o $@ $^ $(CFLAGS)
 
 run: $(BIN)
 	./$(BIN)
