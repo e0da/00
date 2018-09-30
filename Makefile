@@ -20,7 +20,7 @@ run: $(BIN)
 web: 00.html
 
 00.html: $(BIN).c $(EMSDK_ENV)
-	bash -c 'source $(EMSDK_ENV); emcc $(BIN).c -s USE_SDL=2 -s USE_SDL_IMAGE=2 -o $@'
+	bash -c 'source $(EMSDK_ENV); emcc $(BIN).c --embed-file assets -s USE_SDL=2 -s USE_SDL_IMAGE=2 -o $@'
 
 $(EMSDK_ENV):
 	@echo "$(EMSDK_ENV) not found. Install emsdk to $(shell dirname $(EMSDK_ENV))"
