@@ -12,15 +12,23 @@
 #define HEIGHT 768
 #define FPS 60
 
+#ifdef __EMSCRIPTEN__
+#define USE_REQUEST_ANIMATION_FRAME 0
+#define SIMULATE_INFINITE_LOOP 1
+#endif
+
 static SDL_Window *window;
 static SDL_Surface *surface;
-static bool running;
 
 void init(void);
-void iterate(void);
+bool iterate(void); // returns true if this is the last iteration
 void quit(void);
 
-void handle_events(void);
+#ifdef __EMSCRIPTEN__
+void emscripten_iterate(void);
+#endif
+
+bool handle_events(void); // returns true if a quit event is received
 void draw_background(void);
 
 void warn_if_sdl_error(const char *warning, bool condition);
@@ -28,13 +36,15 @@ void warn_if_sdl_error(const char *warning, bool condition);
 int main() {
   init();
 
-#ifdef __EMSCRIPTEN__
-  emscripten_set_main_loop(iterate, FPS, 1);
-#else
-  while (running) {
-    iterate();
+#ifndef __EMSCRIPTEN__
+  while (true) {
+    if (iterate())
+      break;
     SDL_Delay(1000 / FPS);
   }
+#else
+  emscripten_set_main_loop(emscripten_iterate, USE_REQUEST_ANIMATION_FRAME,
+                           SIMULATE_INFINITE_LOOP);
 #endif
 
   quit();
@@ -53,31 +63,35 @@ void init() {
 
   surface = SDL_GetWindowSurface(window);
   warn_if_sdl_error("SDL_GetWindowSurface failed", surface);
-
-  running = init && window && surface;
 }
 
-void iterate() {
-  handle_events();
+bool iterate() {
+  const bool quit = handle_events();
   draw_background();
   SDL_UpdateWindowSurface(window);
+  return quit;
 }
+
+#ifdef __EMSCRIPTEN__
+/* wrap the iterator  because it must return void, but ours does not */
+void emscripten_iterate(void) { iterate(); }
+#endif
 
 void quit() {
   SDL_DestroyWindow(window);
   SDL_Quit();
 }
 
-void handle_events() {
+bool handle_events() {
   SDL_Event event;
   SDL_PollEvent(&event);
   switch (event.type) {
   case SDL_QUIT:
-    running = false;
-    break;
+    return true;
   default:
     break;
   }
+  return false;
 }
 
 void draw_background() {
