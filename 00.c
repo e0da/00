@@ -10,7 +10,9 @@
 #define WINDOW_TITLE "00: o hai windoe"
 #define WIDTH 1024
 #define HEIGHT 768
-#define FPS 60
+#define VSYNC 1
+#define WINDOW_FLAGS SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
+#define RENDERER_FLAGS SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
 
 #ifdef __EMSCRIPTEN__
 #define USE_REQUEST_ANIMATION_FRAME 0
@@ -18,7 +20,7 @@
 #endif
 
 static SDL_Window *window;
-static SDL_Surface *surface;
+static SDL_Renderer *renderer;
 
 void init(void);
 bool iterate(void); // returns true if this is the last iteration
@@ -40,7 +42,6 @@ int main() {
   while (true) {
     if (iterate())
       break;
-    SDL_Delay(1000 / FPS);
   }
 #else
   emscripten_set_main_loop(emscripten_iterate, USE_REQUEST_ANIMATION_FRAME,
@@ -56,19 +57,21 @@ void init() {
   const bool init = !SDL_Init(SDL_INIT_VIDEO); // SDL_Init returns 0 on success
   warn_if_sdl_error("SDL_Init failed", init);
 
-  window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED,
-                            SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT,
-                            SDL_WINDOW_SHOWN);
+  window =
+      SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED,
+                       SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, WINDOW_FLAGS);
   warn_if_sdl_error("SDL_CreateWindow failed", window);
 
-  surface = SDL_GetWindowSurface(window);
-  warn_if_sdl_error("SDL_GetWindowSurface failed", surface);
+  renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS);
+  warn_if_sdl_error("SDL_CreateRenderer failed", renderer);
+
+  SDL_GL_SetSwapInterval(VSYNC);
 }
 
 bool iterate() {
   const bool quit = handle_events();
   draw_background();
-  SDL_UpdateWindowSurface(window);
+  SDL_RenderPresent(renderer);
   return quit;
 }
 
@@ -95,8 +98,8 @@ bool handle_events() {
 }
 
 void draw_background() {
-  const Uint32 cyan = SDL_MapRGB(surface->format, 0x00, 0xff, 0xff);
-  SDL_FillRect(surface, NULL, cyan);
+  SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0xff, 0xff); // cyan
+  SDL_RenderClear(renderer);
 }
 
 void warn_if_sdl_error(const char *warning, bool condition) {
