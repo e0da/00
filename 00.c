@@ -53,7 +53,7 @@ int main() {
 }
 
 void init() {
-  bool init = !SDL_Init(SDL_INIT_VIDEO); // SDL_Init returns 0 on success
+  const bool init = !SDL_Init(SDL_INIT_VIDEO); // SDL_Init returns 0 on success
   warn_if_sdl_error("SDL_Init failed", init);
 
   window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED,
@@ -95,7 +95,7 @@ bool handle_events() {
 }
 
 void draw_background() {
-  const unsigned int cyan = SDL_MapRGB(surface->format, 0x00, 0xff, 0xff);
+  const Uint32 cyan = SDL_MapRGB(surface->format, 0x00, 0xff, 0xff);
   SDL_FillRect(surface, NULL, cyan);
 }
 
