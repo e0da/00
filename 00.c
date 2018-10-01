@@ -127,7 +127,6 @@ int main() {
   while (true) {
     if (iterate())
       break;
-    SDL_Delay(1000 / FPS);
   }
 #else
   emscripten_set_main_loop(emscripten_iterate, USE_REQUEST_ANIMATION_FRAME,
@@ -176,25 +175,6 @@ void emscripten_iterate(void) {
 }
 #endif
 
-void update() {
-  update_game_state();
-  update_bug();
-}
-
-void update_game_state() { tick++; }
-
-void update_bug() {
-  point pos = BugPosition(tick);
-  bug->x = pos.x;
-  bug->y = pos.y;
-}
-
-void draw() {
-  draw_background();
-  draw_bug();
-  SDL_RenderPresent(renderer);
-}
-
 void init_game_state() { tick = 0; }
 
 void init_window() {
@@ -228,6 +208,25 @@ bool handle_events() {
     break;
   }
   return false;
+}
+
+void update() {
+  update_game_state();
+  update_bug();
+}
+
+void update_game_state() { tick++; }
+
+void update_bug() {
+  point pos = BugPosition(tick);
+  bug->x = pos.x;
+  bug->y = pos.y;
+}
+
+void draw() {
+  draw_background();
+  draw_bug();
+  SDL_RenderPresent(renderer);
 }
 
 void draw_background() {
