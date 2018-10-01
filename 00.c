@@ -187,8 +187,7 @@ void emscripten_iterate(void) {
 void init_game_state() { tick = 0; }
 
 void init_window() {
-  const bool init = !SDL_Init(SDL_INIT_VIDEO); // SDL_Init returns 0 on success
-  if (!init) {
+  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     warn("SDL_Init failed in init", SDL_GetError);
     return;
   }
