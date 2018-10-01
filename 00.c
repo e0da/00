@@ -15,10 +15,12 @@
 #define WINDOW_TITLE "00: o hai windoe"
 #define WIDTH 1024
 #define HEIGHT 768
-#define WINDOW_WIDTH (WIDTH) * (RENDERER_SCALE)
-#define WINDOW_HEIGHT (HEIGHT) * (RENDERER_SCALE)
+#define WINDOW_WIDTH (WIDTH * RENDERER_SCALE)
+#define WINDOW_HEIGHT (HEIGHT * RENDERER_SCALE)
 #define FPS 60
-#define RENDERER_FLAGS SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+#define WINDOW_FLAGS                                                           \
+  (SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)
+#define RENDERER_FLAGS (SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
 #define VSYNC 1
 
 #define BUG_SURFACE_ASSET "assets/bug.png"
@@ -151,23 +153,10 @@ bool iterate() {
   return quit;
 }
 
-void update() {
-  update_game_state();
-  update_bug();
-}
-
-void update_game_state() { tick++; }
-
-void update_bug() {
-  point pos = BugPosition(tick);
-  bug->x = pos.x;
-  bug->y = pos.y;
-}
-
-void draw() {
-  draw_background();
-  draw_bug();
-  SDL_RenderPresent(renderer);
+void quit() {
+  DestroyBug(bug);
+  SDL_DestroyWindow(window);
+  SDL_Quit();
 }
 
 #ifdef __EMSCRIPTEN__
@@ -187,16 +176,34 @@ void emscripten_iterate(void) {
 }
 #endif
 
+void update() {
+  update_game_state();
+  update_bug();
+}
+
+void update_game_state() { tick++; }
+
+void update_bug() {
+  point pos = BugPosition(tick);
+  bug->x = pos.x;
+  bug->y = pos.y;
+}
+
+void draw() {
+  draw_background();
+  draw_bug();
+  SDL_RenderPresent(renderer);
+}
+
 void init_game_state() { tick = 0; }
 
 void init_window() {
   const bool init = !SDL_Init(SDL_INIT_VIDEO); // SDL_Init returns 0 on success
   warn_if_sdl_error("SDL_Init failed", init);
 
-  window = SDL_CreateWindow(
-      WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-      WINDOW_WIDTH, WINDOW_HEIGHT,
-      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+  window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED,
+                            SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
+                            WINDOW_HEIGHT, WINDOW_FLAGS);
   warn_if_sdl_error("SDL_CreateWindow failed", window);
 }
 
@@ -209,12 +216,6 @@ void init_renderer() {
 
 void init_bug() {
   bug = CreateBug(BUG_INIT_X, BUG_INIT_Y, BUG_SIZE, BUG_SIZE, renderer);
-}
-
-void quit() {
-  DestroyBug(bug);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
 }
 
 bool handle_events() {
