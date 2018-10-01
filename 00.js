@@ -197,7 +197,7 @@ Module['FS_createPath']('/', 'assets', true, true);
   }
 
  }
- loadPackage({"files": [{"start": 0, "audio": 0, "end": 482, "filename": "/assets/bug.png"}], "remote_package_size": 482, "package_uuid": "0205227f-6f36-463d-8ab7-0e9d45cc3b4c"});
+ loadPackage({"files": [{"start": 0, "audio": 0, "end": 482, "filename": "/assets/bug.png"}], "remote_package_size": 482, "package_uuid": "78856340-3c8c-43ef-9688-a84f82f42298"});
 
 })();
 
@@ -1971,7 +1971,7 @@ function _emscripten_asm_const_iiii(code, a0, a1, a2) {
 
 STATIC_BASE = GLOBAL_BASE;
 
-STATICTOP = STATIC_BASE + 73552;
+STATICTOP = STATIC_BASE + 73824;
 /* global initializers */  __ATINIT__.push({ func: function() { ___emscripten_environ_constructor() } });
 
 
@@ -1980,7 +1980,7 @@ STATICTOP = STATIC_BASE + 73552;
 
 
 
-var STATIC_BUMP = 73552;
+var STATIC_BUMP = 73824;
 Module["STATIC_BASE"] = STATIC_BASE;
 Module["STATIC_BUMP"] = STATIC_BUMP;
 
