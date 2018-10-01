@@ -22,7 +22,7 @@
 #define RENDERER_FLAGS (SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
 #define VSYNC 1
 
-#define BUG_SURFACE_ASSET "assets/bug.png"
+#define BUG_IMAGE_ASSET "assets/bug.png"
 #define BUG_INIT_X WIDTH / 2
 #define BUG_INIT_Y HEIGHT / 2
 #define BUG_SCALE 5
@@ -49,16 +49,28 @@ typedef struct {
   char unused[4];
 } Bug;
 
+void warn(const char *warning, const char *(*callback)(void));
+
 Bug *CreateBug(int x, int y, int w, int h, SDL_Renderer *renderer);
 void DestroyBug(Bug *bug);
 point BugPosition(TICK tick);
 
 Bug *CreateBug(int x, int y, int w, int h, SDL_Renderer *renderer) {
   Bug *bug = (Bug *)malloc(sizeof(Bug));
-  if (!bug)
+  if (!bug) {
+    warn("Allocating Bug failed in CreateBug", NULL);
     return NULL;
-  SDL_Surface *surface = IMG_Load(BUG_SURFACE_ASSET);
+  }
+  SDL_Surface *surface = IMG_Load(BUG_IMAGE_ASSET);
+  if (!surface) {
+    warn("IMG_Load failed in CreateBug", IMG_GetError);
+    return NULL;
+  }
   SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+  if (!texture) {
+    warn("SDL_CreateTextureFromSurface failed in CreateBug", SDL_GetError);
+    return NULL;
+  }
   SDL_FreeSurface(surface);
   bug->x = x;
   bug->y = y;
@@ -70,7 +82,7 @@ Bug *CreateBug(int x, int y, int w, int h, SDL_Renderer *renderer) {
 }
 
 void DestroyBug(Bug *bug) {
-  free(bug->texture);
+  SDL_DestroyTexture(bug->texture);
   free(bug);
 }
 
@@ -115,8 +127,6 @@ void update_bug(void);
 void draw(void);
 void draw_background(void);
 void draw_bug(void);
-
-void warn_if_sdl_error(const char *warning, bool condition);
 
 int main() {
 
@@ -178,23 +188,39 @@ void init_game_state() { tick = 0; }
 
 void init_window() {
   const bool init = !SDL_Init(SDL_INIT_VIDEO); // SDL_Init returns 0 on success
-  warn_if_sdl_error("SDL_Init failed", init);
+  if (!init) {
+    warn("SDL_Init failed in init", SDL_GetError);
+    return;
+  }
 
   window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED,
                             SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
                             WINDOW_HEIGHT, WINDOW_FLAGS);
-  warn_if_sdl_error("SDL_CreateWindow failed", window);
+  if (!window) {
+    warn("SDL_CreateWindow failed in init", SDL_GetError);
+    return;
+  }
 }
 
 void init_renderer() {
   renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS);
-  warn_if_sdl_error("SDL_CreateRenderer failed", window);
+  if (!renderer) {
+    warn("SDL_CreateRenderer failed in init", SDL_GetError);
+    return;
+  }
   SDL_RenderSetScale(renderer, RENDERER_SCALE, RENDERER_SCALE);
-  SDL_GL_SetSwapInterval(VSYNC);
+  if (SDL_GL_SetSwapInterval(VSYNC) == -1) {
+    warn("Swap interval not supported", SDL_GetError);
+    return;
+  };
 }
 
 void init_bug() {
   bug = CreateBug(BUG_INIT_X, BUG_INIT_Y, BUG_SIZE, BUG_SIZE, renderer);
+  if (!bug) {
+    warn("CreateBug failed in init_bug", NULL);
+    return;
+  }
 }
 
 bool handle_events() {
@@ -238,18 +264,24 @@ void draw_background() {
 
 void draw_bug() {
   SDL_Rect *dst = (SDL_Rect *)malloc(sizeof(SDL_Rect));
+  if (!dst) {
+    warn("Allocating SDL_Rect failed in draw_bug", NULL);
+  }
   dst->w = dst->h = BUG_SIZE;
   const int offset = -BUG_SIZE / 2;
   dst->x = bug->x + offset;
   dst->y = bug->y + offset;
   const SDL_RendererFlip flip =
       bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-  SDL_RenderCopyEx(renderer, bug->texture, NULL, dst, 0, 0, flip);
+  if (SDL_RenderCopyEx(renderer, bug->texture, NULL, dst, 0, 0, flip) < 0) {
+    warn("SDL_RenderCopyEx failed in draw_bug", SDL_GetError);
+  }
   free(dst);
 }
 
-void warn_if_sdl_error(const char *warning, bool condition) {
-  if (!condition) {
-    printf("WARN: %s\nSDL_Error: %s\n", warning, SDL_GetError());
+void warn(const char *warning, const char *(*callback)(void)) {
+  printf("WARN: %s\n", warning);
+  if (callback) {
+    printf("Error: %s\n", (*callback)());
   }
 }
