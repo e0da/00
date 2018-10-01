@@ -1,14 +1,11 @@
 {
-  "clang.cflags": [
-    "-Weverything",
-    "-pedantic",
-    "-ggdb",
-    "-O3",
-    "-std=c11"
-  ],
   "files.associations": {
     "stdbool.h": "c",
     "cstdbool": "c",
     "c++config.h": "c"
-  }
+  },
+  "c-cpp-flylint.clang.standard": ["c11"],
+  "c-cpp-flylint.language": "c",
+  "c-cpp-flylint.flexelint.enable": false,
+  "c-cpp-flylint.cppcheck.enable": false
 }
