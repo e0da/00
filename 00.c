@@ -221,6 +221,9 @@ void update_bug() {
   point pos = BugPosition(tick);
   bug->x = pos.x;
   bug->y = pos.y;
+  if (tick % 100 == 0) {
+    bug->face = bug->face == RIGHT ? LEFT : RIGHT;
+  }
 }
 
 void draw() {
@@ -240,7 +243,9 @@ void draw_bug() {
   const int offset = -BUG_SIZE / 2;
   dst->x = bug->x + offset;
   dst->y = bug->y + offset;
-  SDL_RenderCopy(renderer, bug->texture, NULL, dst);
+  const SDL_RendererFlip flip =
+      bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+  SDL_RenderCopyEx(renderer, bug->texture, NULL, dst, 0, 0, flip);
   free(dst);
 }
 
