@@ -1,5 +1,7 @@
 00
-00.data
-00.html
-00.js
-00.wasm
+index.data
+index.html
+index.js
+index.wasm
+index.wasm.map
+index.wast
