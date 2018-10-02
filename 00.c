@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <err.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -32,7 +33,7 @@
 #ifdef __EMSCRIPTEN__
 #define USE_REQUEST_ANIMATION_FRAME 0
 #define SIMULATE_INFINITE_LOOP 1
-#else
+#define warn(...) emscripten_log(EM_LOG_WARN, __VA_ARGS__)
 #endif
 
 typedef Uint32 TICK;
@@ -49,8 +50,6 @@ typedef struct {
   char unused[4];
 } Bug;
 
-void warn(const char *warning, const char *(*callback)(void));
-
 Bug *CreateBug(int x, int y, int w, int h, SDL_Renderer *renderer);
 void DestroyBug(Bug *bug);
 point BugPosition(TICK tick);
@@ -58,17 +57,20 @@ point BugPosition(TICK tick);
 Bug *CreateBug(int x, int y, int w, int h, SDL_Renderer *renderer) {
   Bug *bug = (Bug *)malloc(sizeof(Bug));
   if (!bug) {
-    warn("Allocating Bug failed in CreateBug", NULL);
+    warn("%s:%d: Allocating Bug failed", __FILE__, __LINE__);
     return NULL;
   }
   SDL_Surface *surface = IMG_Load(BUG_IMAGE_ASSET);
   if (!surface) {
-    warn("IMG_Load failed in CreateBug", IMG_GetError);
+    warn("%s:%d: IMG_Load failed in CreateBug -- IMG_Error: %s", __FILE__,
+         __LINE__, IMG_GetError());
     return NULL;
   }
   SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
   if (!texture) {
-    warn("SDL_CreateTextureFromSurface failed in CreateBug", SDL_GetError);
+    warn("%s:%d: SDL_CreateTextureFromSurface failed in CreateBug -- "
+         "SDL_Error: %s",
+         __FILE__, __LINE__, SDL_GetError());
     return NULL;
   }
   SDL_FreeSurface(surface);
@@ -129,8 +131,6 @@ void draw_background(void);
 void draw_bug(void);
 
 int main() {
-
-// XXX See emscripten_iterate implementation
 #ifndef __EMSCRIPTEN__
   init();
   while (true) {
@@ -141,9 +141,7 @@ int main() {
   emscripten_set_main_loop(emscripten_iterate, USE_REQUEST_ANIMATION_FRAME,
                            SIMULATE_INFINITE_LOOP);
 #endif
-
   quit();
-
   return 0;
 }
 
@@ -172,10 +170,9 @@ void quit() {
 XXX The requirements are a little different for setting up SDL in
 native vs Emscripten.
 - The iterator must return void
-- Init has to happen in the first iteration
-  - The renderer has to be created after emscripten_set_main_loop
-  - Rendering textures from surfaces created with IMG_Load doesn't seem
-    to work if I initialize the texture before the firts iteration
+- Rendering textures from surfaces created with IMG_Load doesn't seem to work
+  if I initialize the texture before the first iteration, so we make sure init
+  is called after Emscripten sets up its main loop callback.
 */
 void emscripten_iterate(void) {
   if (!window)
@@ -188,7 +185,8 @@ void init_game_state() { tick = 0; }
 
 void init_window() {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    warn("SDL_Init failed in init", SDL_GetError);
+    warn("%s:%d: SDL_Init failed in init -- SDL_Error: %s", __FILE__, __LINE__,
+         SDL_GetError());
     return;
   }
 
@@ -196,7 +194,8 @@ void init_window() {
                             SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
                             WINDOW_HEIGHT, WINDOW_FLAGS);
   if (!window) {
-    warn("SDL_CreateWindow failed in init", SDL_GetError);
+    warn("%s:%d: SDL_CreateWindow failed in init -- SDL_Error: %s", __FILE__,
+         __LINE__, SDL_GetError());
     return;
   }
 }
@@ -204,12 +203,14 @@ void init_window() {
 void init_renderer() {
   renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS);
   if (!renderer) {
-    warn("SDL_CreateRenderer failed in init", SDL_GetError);
+    warn("%s:%d: SDL_CreateRenderer failed in init -- SDL_Error: %s", __FILE__,
+         __LINE__, SDL_GetError());
     return;
   }
   SDL_RenderSetScale(renderer, RENDERER_SCALE, RENDERER_SCALE);
   if (SDL_GL_SetSwapInterval(VSYNC) == -1) {
-    warn("Swap interval not supported", SDL_GetError);
+    warn("%s:%d: Swap interval not supported -- SDL_GetError: %s", __FILE__,
+         __LINE__, SDL_GetError());
     return;
   };
 }
@@ -217,7 +218,7 @@ void init_renderer() {
 void init_bug() {
   bug = CreateBug(BUG_INIT_X, BUG_INIT_Y, BUG_SIZE, BUG_SIZE, renderer);
   if (!bug) {
-    warn("CreateBug failed in init_bug", NULL);
+    warn("%s:%d: CreateBug failed in init_bug", __FILE__, __LINE__);
     return;
   }
 }
@@ -264,7 +265,7 @@ void draw_background() {
 void draw_bug() {
   SDL_Rect *dst = (SDL_Rect *)malloc(sizeof(SDL_Rect));
   if (!dst) {
-    warn("Allocating SDL_Rect failed in draw_bug", NULL);
+    warn("%s:%d: Allocating SDL_Rect failed in draw_bug", __FILE__, __LINE__);
   }
   dst->w = dst->h = BUG_SIZE;
   const int offset = -BUG_SIZE / 2;
@@ -273,14 +274,8 @@ void draw_bug() {
   const SDL_RendererFlip flip =
       bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
   if (SDL_RenderCopyEx(renderer, bug->texture, NULL, dst, 0, 0, flip) < 0) {
-    warn("SDL_RenderCopyEx failed in draw_bug", SDL_GetError);
+    warn("%s:%d: SDL_RenderCopyEx failed in draw_bug -- SDL_Error: %s",
+         __FILE__, __LINE__, SDL_GetError());
   }
   free(dst);
-}
-
-void warn(const char *warning, const char *(*callback)(void)) {
-  printf("WARN: %s\n", warning);
-  if (callback) {
-    printf("Error: %s\n", (*callback)());
-  }
 }
