@@ -1,13 +1,7 @@
-BIN:=00
-HTML:=index.html
-MAIN_C:=$(BIN).c
+BIN=00
 CC:=clang
-STD:=-std=c11
-LIBS:=-lSDL2 -lSDL2_image -lm
-OPTIMIZE:=-O3
-LINT:=-Weverything -pedantic
-DEBUG:=-ggdb
-CFLAGS:=$(DEBUG) $(LINT) $(OPTIMIZE) $(LIBS) $(STD)
+LIBS:=-lSDL2 -lSDL2_image
+CFLAGS:= -std=c11 -O3 -Weverything -pedantic -ggdb
 
 EMSDK_ENV:=${HOME}/src/emsdk/emsdk_env.sh
 
@@ -21,28 +15,36 @@ EMCC_FLAGS:=--preload-file assets \
 						-s SDL2_IMAGE_FORMATS='["png"]'
 
 BUILD_ARTIFACTS:=$(BIN)
-BUILD_WEB_ARTIFACTS:=$(HTML) index.js index.wasm index.data
+BUILD_WEB_ARTIFACTS:=index.html index.js index.wasm index.data
 BUILD_WEB_JUNK_ARTIFACTS:=index.wasm.map index.wast
-BUILD_WEB_CLEAN_ARTIFACTS:=$(BUILD_WEB_ARTIFACTS) $(BUILD_WEB_JUNK_ARTIFACTS)
-CLEAN_ARTIFACTS:=$(BUILD_ARTIFACTS) $(BUILD_WEB_CLEAN_ARTIFACTS)
+BUILD_WEB_CLEAN_ARTIFACTS:=$(BUILD_WEB_ARTIFACTS) $(BUILD_WEB_JUNK_ARTIFACTS) *.o
+CLEAN_ARTIFACTS:=$(BIN) index.* *.o
 
 BUILD_WEB_TEMPDIR:=$(shell tempfile)
 BUILD_WEB_PAYLOAD:=$(BUILD_WEB_ARTIFACTS) LICENSE COPYING README.md
 
+BIN_OBJS=$(BIN).o Bug.o
+
 all: $(BIN)
 
-$(BIN): $(MAIN_C)
-	$(CC) -o $@ $(MAIN_C) $(CFLAGS)
+$(BIN): $(BIN_OBJS)
+	$(CC) -o $@ $(BIN_OBJS) $(CFLAGS) $(LIBS)
+
+$(BIN).o: $(BIN).c Bug.h logging.h
+	$(CC) -c -o $@ $(BIN).c $(CFLAGS)
+
+Bug.o: Bug.h Bug.c logging.h
+	$(CC) -c -o $@ Bug.c $(CFLAGS)
 
 .PHONY: run
 run: $(BIN)
 	./$(BIN)
 
 .PHONY: web
-web: $(HTML) $(MAIN_C)
+web: index.html
 
-$(HTML): $(MAIN_C) $(EMSDK_ENV)
-	bash -c 'source $(EMSDK_ENV); emcc -o $@ $(MAIN_C) $(EMCC_FLAGS)'
+index.html: $(EMSDK_ENV) $(BIN).c Bug.c Bug.h logging.h
+	bash -c 'source $(EMSDK_ENV); emcc -o $@ $(BIN).c Bug.c $(EMCC_FLAGS)'
 
 .PHONY: serve
 serve: web
@@ -57,8 +59,8 @@ $(EMSDK_ENV):
 clean:
 	rm -f $(CLEAN_ARTIFACTS)
 
-.PHONY: build-web
-build-web: web
+.PHONY: web-build
+web-build: clean web
 	git diff --quiet
 	git diff --cached --quiet
 	rm $(BUILD_WEB_TEMPDIR)

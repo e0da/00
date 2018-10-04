@@ -1,9 +1,8 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <err.h>
-#include <math.h>
 #include <stdbool.h>
-#include <stdio.h>
+
+#include "Bug.h"
+#include "logging.h"
 
 // TODO I don't like how calculating RENDERER_SCALE works
 #ifdef __EMSCRIPTEN__
@@ -18,89 +17,14 @@
 #define HEIGHT 768
 #define WINDOW_WIDTH (WIDTH * RENDERER_SCALE)
 #define WINDOW_HEIGHT (HEIGHT * RENDERER_SCALE)
-#define WINDOW_FLAGS                                                           \
-  (SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)
+#define WINDOW_FLAGS SDL_WINDOW_OPENGL
 #define RENDERER_FLAGS (SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
 #define VSYNC 1
-
-#define BUG_IMAGE_ASSET "assets/bug.png"
-#define BUG_INIT_X WIDTH / 2
-#define BUG_INIT_Y HEIGHT / 2
-#define BUG_SCALE 5
-#define BUG_SIZE 32 * BUG_SCALE
-#define BUG_SPEED 10
 
 #ifdef __EMSCRIPTEN__
 #define USE_REQUEST_ANIMATION_FRAME 0
 #define SIMULATE_INFINITE_LOOP 1
-#define warn(...) emscripten_log(EM_LOG_WARN, __VA_ARGS__)
 #endif
-
-typedef Uint32 TICK;
-
-typedef enum { LEFT, RIGHT } direction;
-
-typedef SDL_Point point;
-
-typedef struct {
-  SDL_Texture *texture;
-  int x, y;
-  int w, h;
-  direction face;
-  char unused[4];
-} Bug;
-
-Bug *CreateBug(int x, int y, int w, int h, SDL_Renderer *renderer);
-void DestroyBug(Bug *bug);
-point BugPosition(TICK tick);
-
-Bug *CreateBug(int x, int y, int w, int h, SDL_Renderer *renderer) {
-  Bug *bug = (Bug *)malloc(sizeof(Bug));
-  if (!bug) {
-    warn("%s:%d: Allocating Bug failed", __FILE__, __LINE__);
-    return NULL;
-  }
-  SDL_Surface *surface = IMG_Load(BUG_IMAGE_ASSET);
-  if (!surface) {
-    warn("%s:%d: IMG_Load failed in CreateBug -- IMG_Error: %s", __FILE__,
-         __LINE__, IMG_GetError());
-    return NULL;
-  }
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-  if (!texture) {
-    warn("%s:%d: SDL_CreateTextureFromSurface failed in CreateBug -- "
-         "SDL_Error: %s",
-         __FILE__, __LINE__, SDL_GetError());
-    return NULL;
-  }
-  SDL_FreeSurface(surface);
-  bug->x = x;
-  bug->y = y;
-  bug->w = w;
-  bug->h = h;
-  bug->face = RIGHT;
-  bug->texture = texture;
-  return bug;
-}
-
-void DestroyBug(Bug *bug) {
-  SDL_DestroyTexture(bug->texture);
-  free(bug);
-}
-
-point BugPosition(TICK tick) {
-  /*
-   Currently makes him go in a wobbly path.
-   This theta determines the rotation speed. Whatever feels good.
-  */
-  const double theta = (double)(tick) / (BUG_SPEED * 3);
-  const int radius = 200; // displacement from origin
-  const double xWrinkle = 1.5;
-  const double yWrinkle = 0.8;
-  point pos = {.x = (WIDTH / 2) + (int)(radius * cos(theta * xWrinkle)),
-               .y = (HEIGHT / 2) + (int)(radius * sin(theta * yWrinkle))};
-  return pos;
-}
 
 static TICK tick;
 static SDL_Window *window;
@@ -120,11 +44,7 @@ void init_window(void);
 void init_renderer(void);
 void init_bug(void);
 
-bool handle_events(void); // returns true if a quit event is received
-
-void update(void);
-void update_game_state(void);
-void update_bug(void);
+bool update(void); // returns true if a quit event is received
 
 void draw(void);
 void draw_background(void);
@@ -153,14 +73,13 @@ void init() {
 }
 
 bool iterate() {
-  const bool quit = handle_events();
-  update();
+  const bool quit = update();
   draw();
   return quit;
 }
 
 void quit() {
-  DestroyBug(bug);
+  BugDestroy(bug);
   SDL_DestroyWindow(window);
   SDL_Quit();
 }
@@ -216,14 +135,16 @@ void init_renderer() {
 }
 
 void init_bug() {
-  bug = CreateBug(BUG_INIT_X, BUG_INIT_Y, BUG_SIZE, BUG_SIZE, renderer);
+  bug = BugCreate(BUG_INIT_X, BUG_INIT_Y, BUG_SIZE, BUG_SIZE, renderer);
   if (!bug) {
-    warn("%s:%d: CreateBug failed in init_bug", __FILE__, __LINE__);
+    warn("%s:%d: BugCreate failed in init_bug", __FILE__, __LINE__);
     return;
   }
 }
 
-bool handle_events() {
+bool update() {
+  tick++;
+
   SDL_Event event;
   SDL_PollEvent(&event);
   switch (event.type) {
@@ -232,23 +153,41 @@ bool handle_events() {
   default:
     break;
   }
-  return false;
-}
 
-void update() {
-  update_game_state();
-  update_bug();
-}
-
-void update_game_state() { tick++; }
-
-void update_bug() {
-  point pos = BugPosition(tick);
-  bug->x = pos.x;
-  bug->y = pos.y;
-  if (tick % 100 == 0) {
-    bug->face = bug->face == RIGHT ? LEFT : RIGHT;
+  const Uint8 *keys = SDL_GetKeyboardState(NULL);
+  if (keys[SDL_SCANCODE_LEFT]) {
+    BugMove(bug, LEFT, WIDTH, HEIGHT);
   }
+
+  if (keys[SDL_SCANCODE_RIGHT]) {
+    BugMove(bug, RIGHT, WIDTH, HEIGHT);
+  }
+
+  if (keys[SDL_SCANCODE_UP]) {
+    BugMove(bug, UP, WIDTH, HEIGHT);
+  }
+
+  if (keys[SDL_SCANCODE_DOWN]) {
+    BugMove(bug, DOWN, WIDTH, HEIGHT);
+  }
+
+  /* Move toward the cursor unless it's so close that we'd overshoot */
+  int x, y, dx, dy;
+  if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+    y = WINDOW_HEIGHT - y; // so y increases upward
+    dx = x - (bug->x * RENDERER_SCALE);
+    dy = y - (bug->y * RENDERER_SCALE);
+    if (dx < 0 && dx < -BUG_SPEED)
+      BugMove(bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
+    else if (dx > 0 && dx > BUG_SPEED)
+      BugMove(bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
+    if (dy < 0 && dy < -BUG_SPEED)
+      BugMove(bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
+    else if (dy > 0 && dy > BUG_SPEED)
+      BugMove(bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
+  }
+
+  return false;
 }
 
 void draw() {
@@ -270,7 +209,7 @@ void draw_bug() {
   dst->w = dst->h = BUG_SIZE;
   const int offset = -BUG_SIZE / 2;
   dst->x = bug->x + offset;
-  dst->y = bug->y + offset;
+  dst->y = (HEIGHT - bug->y) + offset;
   const SDL_RendererFlip flip =
       bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
   if (SDL_RenderCopyEx(renderer, bug->texture, NULL, dst, 0, 0, flip) < 0) {
