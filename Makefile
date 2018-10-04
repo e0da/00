@@ -30,8 +30,8 @@ all: $(BIN)
 $(BIN): $(BIN_OBJS)
 	$(CC) -o $@ $(BIN_OBJS) $(CFLAGS) $(LIBS)
 
-$(BIN).o: $(BIN).c Bug.h logging.h
-	$(CC) -c -o $@ $(BIN).c $(CFLAGS)
+$(BIN).o: main.c Bug.h logging.h
+	$(CC) -c -o $@ main.c $(CFLAGS)
 
 Bug.o: Bug.h Bug.c logging.h
 	$(CC) -c -o $@ Bug.c $(CFLAGS)
@@ -43,8 +43,8 @@ run: $(BIN)
 .PHONY: web
 web: index.html
 
-index.html: $(EMSDK_ENV) $(BIN).c Bug.c Bug.h logging.h
-	bash -c 'source $(EMSDK_ENV); emcc -o $@ $(BIN).c Bug.c $(EMCC_FLAGS)'
+index.html: $(EMSDK_ENV) main.c Bug.c Bug.h logging.h
+	bash -c 'source $(EMSDK_ENV); emcc -o $@ main.c Bug.c $(EMCC_FLAGS)'
 
 .PHONY: serve
 serve: web
