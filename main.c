@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <stdbool.h>
 
 #include "Bug.h"
@@ -17,9 +18,12 @@
 #define HEIGHT 768
 #define WINDOW_WIDTH (WIDTH * RENDERER_SCALE)
 #define WINDOW_HEIGHT (HEIGHT * RENDERER_SCALE)
+#define INIT_FLAGS (SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER)
 #define WINDOW_FLAGS SDL_WINDOW_OPENGL
 #define RENDERER_FLAGS (SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
 #define VSYNC 1
+#define JOYSTICK_1 0
+#define IMAGE_FLAGS IMG_INIT_PNG
 
 #ifdef __EMSCRIPTEN__
 #define USE_REQUEST_ANIMATION_FRAME 0
@@ -29,6 +33,7 @@
 static TICK tick;
 static SDL_Window *window;
 static SDL_Renderer *renderer;
+static SDL_GameController *controller;
 static Bug *bug;
 static bool quitting;
 static bool initialized;
@@ -40,6 +45,8 @@ void quit(void);
 void init_game_state(void);
 bool init_window(void);
 bool init_renderer(void);
+bool init_image(void);
+bool init_controller(void);
 bool init_bug(void);
 
 bool update(void); // returns false if a quit event is received
@@ -74,6 +81,13 @@ bool init() {
     WARN("%s:%d: init_renderer failed in init", __FILE__, __LINE__);
     return false;
   }
+  if (!init_image()) {
+    WARN("%s:%d: init_image failed in init", __FILE__, __LINE__);
+    return false;
+  }
+  if (!init_controller()) {
+    WARN("%s:%d: init controller failed in init -- OK!", __FILE__, __LINE__);
+  }
   if (!init_bug()) {
     WARN("%s:%d: init_bug failed in init", __FILE__, __LINE__);
     return false;
@@ -87,8 +101,23 @@ void iterate() {
 }
 
 void quit() {
-  BugDestroy(bug);
-  SDL_DestroyWindow(window);
+  if (bug) {
+    BugDestroy(bug);
+    bug = NULL;
+  }
+  if (controller) {
+    SDL_GameControllerClose(controller);
+    controller = NULL;
+  }
+  if (renderer) {
+    SDL_DestroyRenderer(renderer);
+    renderer = NULL;
+  }
+  if (window) {
+    SDL_DestroyWindow(window);
+    window = NULL;
+  }
+  IMG_Quit();
   SDL_Quit();
 }
 
@@ -98,7 +127,7 @@ void init_game_state() {
 }
 
 bool init_window() {
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+  if (SDL_Init(INIT_FLAGS) != 0) {
     WARN("%s:%d: SDL_Init failed in init_window -- SDL_Error: %s", __FILE__,
          __LINE__, SDL_GetError());
     return false;
@@ -129,6 +158,32 @@ bool init_renderer() {
          __FILE__, __LINE__, SDL_GetError());
     return false;
   };
+  return true;
+}
+
+bool init_image() {
+  const int flags = IMG_Init(IMAGE_FLAGS);
+  if ((flags & IMAGE_FLAGS) != IMAGE_FLAGS) {
+    WARN("%s:%d: IMG_Init failed in init_image -- IMG_Error: %s", __FILE__,
+         __LINE__, IMG_GetError());
+    return false;
+  }
+  return true;
+}
+
+bool init_controller() {
+  controller = NULL;
+  if (SDL_NumJoysticks() < 0) {
+    WARN("%s:%d: No joysticks found in init_controller -- OK!", __FILE__,
+         __LINE__);
+    return false;
+  }
+  controller = SDL_GameControllerOpen(JOYSTICK_1);
+  if (!controller) {
+    WARN("%s:%d: SDL_JoystickOpen failed in init_controller -- SDL_Error: %s",
+         __FILE__, __LINE__, SDL_GetError());
+    return false;
+  }
   return true;
 }
 
@@ -165,14 +220,14 @@ bool update() {
 
   { /* held keys */
     const Uint8 *keys = SDL_GetKeyboardState(NULL);
-    if (keys[SDL_SCANCODE_LEFT])
-      BugMove(bug, LEFT, WIDTH, HEIGHT);
     if (keys[SDL_SCANCODE_RIGHT])
       BugMove(bug, RIGHT, WIDTH, HEIGHT);
-    if (keys[SDL_SCANCODE_UP])
-      BugMove(bug, UP, WIDTH, HEIGHT);
     if (keys[SDL_SCANCODE_DOWN])
       BugMove(bug, DOWN, WIDTH, HEIGHT);
+    if (keys[SDL_SCANCODE_LEFT])
+      BugMove(bug, LEFT, WIDTH, HEIGHT);
+    if (keys[SDL_SCANCODE_UP])
+      BugMove(bug, UP, WIDTH, HEIGHT);
   }
 
   { /* when the left mouse button is held move toward the cursor unless it's so
@@ -182,15 +237,30 @@ bool update() {
       y = WINDOW_HEIGHT - y; // so y increases upward
       dx = x - (bug->x * RENDERER_SCALE);
       dy = y - (bug->y * RENDERER_SCALE);
-      if (dx < 0 && dx < -BUG_SPEED)
-        BugMove(bug, LEFT, WIDTH, HEIGHT);
       if (dx > 0 && dx > BUG_SPEED)
         BugMove(bug, RIGHT, WIDTH, HEIGHT);
       if (dy < 0 && dy < -BUG_SPEED)
         BugMove(bug, DOWN, WIDTH, HEIGHT);
+      if (dx < 0 && dx < -BUG_SPEED)
+        BugMove(bug, LEFT, WIDTH, HEIGHT);
       if (dy > 0 && dy > BUG_SPEED)
         BugMove(bug, UP, WIDTH, HEIGHT);
     }
+  }
+
+  /* game controller */
+  if (controller) {
+    if (SDL_GameControllerGetButton(controller,
+                                    SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
+      BugMove(bug, RIGHT, WIDTH, HEIGHT);
+    if (SDL_GameControllerGetButton(controller,
+                                    SDL_CONTROLLER_BUTTON_DPAD_DOWN))
+      BugMove(bug, DOWN, WIDTH, HEIGHT);
+    if (SDL_GameControllerGetButton(controller,
+                                    SDL_CONTROLLER_BUTTON_DPAD_LEFT))
+      BugMove(bug, LEFT, WIDTH, HEIGHT);
+    if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_UP))
+      BugMove(bug, UP, WIDTH, HEIGHT);
   }
 
   return true;
