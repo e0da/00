@@ -152,46 +152,45 @@ bool update() {
 
   tick++;
 
-  SDL_Event event;
-  SDL_PollEvent(&event);
-  switch (event.type) {
-  case SDL_QUIT:
-    return false;
-  default:
-    break;
+  { /* key presses */
+    SDL_Event event;
+    SDL_PollEvent(&event);
+    switch (event.type) {
+    case SDL_QUIT:
+      return false;
+    default:
+      break;
+    }
   }
 
-  const Uint8 *keys = SDL_GetKeyboardState(NULL);
-  if (keys[SDL_SCANCODE_LEFT]) {
-    BugMove(bug, LEFT, WIDTH, HEIGHT);
-  }
-
-  if (keys[SDL_SCANCODE_RIGHT]) {
-    BugMove(bug, RIGHT, WIDTH, HEIGHT);
-  }
-
-  if (keys[SDL_SCANCODE_UP]) {
-    BugMove(bug, UP, WIDTH, HEIGHT);
-  }
-
-  if (keys[SDL_SCANCODE_DOWN]) {
-    BugMove(bug, DOWN, WIDTH, HEIGHT);
-  }
-
-  /* Move toward the cursor unless it's so close that we'd overshoot */
-  int x, y, dx, dy;
-  if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-    y = WINDOW_HEIGHT - y; // so y increases upward
-    dx = x - (bug->x * RENDERER_SCALE);
-    dy = y - (bug->y * RENDERER_SCALE);
-    if (dx < 0 && dx < -BUG_SPEED)
+  { /* held keys */
+    const Uint8 *keys = SDL_GetKeyboardState(NULL);
+    if (keys[SDL_SCANCODE_LEFT])
       BugMove(bug, LEFT, WIDTH, HEIGHT);
-    else if (dx > 0 && dx > BUG_SPEED)
+    if (keys[SDL_SCANCODE_RIGHT])
       BugMove(bug, RIGHT, WIDTH, HEIGHT);
-    if (dy < 0 && dy < -BUG_SPEED)
-      BugMove(bug, DOWN, WIDTH, HEIGHT);
-    else if (dy > 0 && dy > BUG_SPEED)
+    if (keys[SDL_SCANCODE_UP])
       BugMove(bug, UP, WIDTH, HEIGHT);
+    if (keys[SDL_SCANCODE_DOWN])
+      BugMove(bug, DOWN, WIDTH, HEIGHT);
+  }
+
+  { /* when the left mouse button is held move toward the cursor unless it's so
+       close that we'd overshoot */
+    int x, y, dx, dy;
+    if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+      y = WINDOW_HEIGHT - y; // so y increases upward
+      dx = x - (bug->x * RENDERER_SCALE);
+      dy = y - (bug->y * RENDERER_SCALE);
+      if (dx < 0 && dx < -BUG_SPEED)
+        BugMove(bug, LEFT, WIDTH, HEIGHT);
+      if (dx > 0 && dx > BUG_SPEED)
+        BugMove(bug, RIGHT, WIDTH, HEIGHT);
+      if (dy < 0 && dy < -BUG_SPEED)
+        BugMove(bug, DOWN, WIDTH, HEIGHT);
+      if (dy > 0 && dy > BUG_SPEED)
+        BugMove(bug, UP, WIDTH, HEIGHT);
+    }
   }
 
   return true;
