@@ -30,14 +30,12 @@ static TICK tick;
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static Bug *bug;
+static bool quitting;
+static bool initialized;
 
 void init(void);
-bool iterate(void); // returns true if this is the last iteration
+void iterate(void);
 void quit(void);
-
-#ifdef __EMSCRIPTEN__
-void emscripten_iterate(void);
-#endif
 
 void init_game_state(void);
 void init_window(void);
@@ -51,15 +49,16 @@ void draw_background(void);
 void draw_bug(void);
 
 int main() {
-#ifndef __EMSCRIPTEN__
-  init();
+  initialized = false;
+#ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop(iterate, USE_REQUEST_ANIMATION_FRAME,
+                           SIMULATE_INFINITE_LOOP);
+#else
   while (true) {
-    if (iterate())
+    iterate();
+    if (quitting)
       break;
   }
-#else
-  emscripten_set_main_loop(emscripten_iterate, USE_REQUEST_ANIMATION_FRAME,
-                           SIMULATE_INFINITE_LOOP);
 #endif
   quit();
   return 0;
@@ -70,12 +69,12 @@ void init() {
   init_window();
   init_renderer();
   init_bug();
+  initialized = true;
 }
 
-bool iterate() {
-  const bool quit = update();
+void iterate() {
+  quitting = update();
   draw();
-  return quit;
 }
 
 void quit() {
@@ -84,23 +83,10 @@ void quit() {
   SDL_Quit();
 }
 
-#ifdef __EMSCRIPTEN__
-/*
-XXX The requirements are a little different for setting up SDL in
-native vs Emscripten.
-- The iterator must return void
-- Rendering textures from surfaces created with IMG_Load doesn't seem to work
-  if I initialize the texture before the first iteration, so we make sure init
-  is called after Emscripten sets up its main loop callback.
-*/
-void emscripten_iterate(void) {
-  if (!window)
-    init();
-  iterate();
+void init_game_state() {
+  quitting = false;
+  tick = 0;
 }
-#endif
-
-void init_game_state() { tick = 0; }
 
 void init_window() {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -143,6 +129,9 @@ void init_bug() {
 }
 
 bool update() {
+  if (!initialized)
+    init();
+
   tick++;
 
   SDL_Event event;
