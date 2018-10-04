@@ -61,8 +61,8 @@ void BugMove(Bug *bug, direction direction, int width, int height) {
     bug->x = 0 + half_w;
   if (bug->x + half_w > width)
     bug->x = width - half_w;
-  if (bug->y - half_w < 0)
+  if (bug->y - half_h < 0)
     bug->y = 0 + half_h;
   if (bug->y + half_h > height)
-    bug->y = height - half_w;
+    bug->y = height - half_h;
 }
