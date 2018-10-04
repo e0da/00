@@ -185,13 +185,13 @@ bool update() {
     dx = x - (bug->x * RENDERER_SCALE);
     dy = y - (bug->y * RENDERER_SCALE);
     if (dx < 0 && dx < -BUG_SPEED)
-      BugMove(bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
+      BugMove(bug, LEFT, WIDTH, HEIGHT);
     else if (dx > 0 && dx > BUG_SPEED)
-      BugMove(bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
+      BugMove(bug, RIGHT, WIDTH, HEIGHT);
     if (dy < 0 && dy < -BUG_SPEED)
-      BugMove(bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
+      BugMove(bug, DOWN, WIDTH, HEIGHT);
     else if (dy > 0 && dy > BUG_SPEED)
-      BugMove(bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
+      BugMove(bug, UP, WIDTH, HEIGHT);
   }
 
   return true;
