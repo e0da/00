@@ -1,6 +1,10 @@
 #ifndef BUG_H
 #define BUG_H
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
+#include "logging.h"
 #include "types.h"
 
 #define BUG_IMAGE_ASSET "assets/bug.png"

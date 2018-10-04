@@ -1,8 +1,4 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-
-#include "Bug.h"
-#include "logging.h"
+#include "bug.h"
 
 Bug *BugCreate(int x, int y, int w, int h, SDL_Renderer *renderer) {
   Bug *bug = (Bug *)malloc(sizeof(Bug));

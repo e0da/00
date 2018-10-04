@@ -1,9 +1,10 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include <stdbool.h>
 
-#include "Bug.h"
+#include "bug.h"
+#include "engine.h"
 #include "logging.h"
+#include "types.h"
 
 // TODO I don't like how calculating RENDERER_SCALE works
 #ifdef __EMSCRIPTEN__
@@ -13,17 +14,11 @@
 #define RENDERER_SCALE 2
 #endif
 
-#define WINDOW_TITLE "00: o hai windoe"
 #define WIDTH 1024
 #define HEIGHT 768
+#define WINDOW_TITLE "00: o hai windoe"
 #define WINDOW_WIDTH (WIDTH * RENDERER_SCALE)
 #define WINDOW_HEIGHT (HEIGHT * RENDERER_SCALE)
-#define INIT_FLAGS (SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER)
-#define WINDOW_FLAGS SDL_WINDOW_OPENGL
-#define RENDERER_FLAGS (SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
-#define VSYNC 1
-#define JOYSTICK_1 0
-#define IMAGE_FLAGS IMG_INIT_PNG
 
 #ifdef __EMSCRIPTEN__
 #define USE_REQUEST_ANIMATION_FRAME 0
@@ -43,10 +38,6 @@ void iterate(void);
 void quit(void);
 
 void init_game_state(void);
-bool init_window(void);
-bool init_renderer(void);
-bool init_image(void);
-bool init_controller(void);
 bool init_bug(void);
 
 bool update(void); // returns false if a quit event is received
@@ -73,20 +64,10 @@ int main() {
 
 bool init() {
   init_game_state();
-  if (!init_window()) {
-    WARN("%s:%d: init_window failed in init", __FILE__, __LINE__);
+  if (!EngineInit(&window, &renderer, &controller, WINDOW_WIDTH, WINDOW_HEIGHT,
+                  RENDERER_SCALE, WINDOW_TITLE)) {
+    WARN("%s:%d: EngineInit failed in init", __FILE__, __LINE__);
     return false;
-  }
-  if (!init_renderer()) {
-    WARN("%s:%d: init_renderer failed in init", __FILE__, __LINE__);
-    return false;
-  }
-  if (!init_image()) {
-    WARN("%s:%d: init_image failed in init", __FILE__, __LINE__);
-    return false;
-  }
-  if (!init_controller()) {
-    WARN("%s:%d: init controller failed in init -- OK!", __FILE__, __LINE__);
   }
   if (!init_bug()) {
     WARN("%s:%d: init_bug failed in init", __FILE__, __LINE__);
@@ -105,86 +86,12 @@ void quit() {
     BugDestroy(bug);
     bug = NULL;
   }
-  if (controller) {
-    SDL_GameControllerClose(controller);
-    controller = NULL;
-  }
-  if (renderer) {
-    SDL_DestroyRenderer(renderer);
-    renderer = NULL;
-  }
-  if (window) {
-    SDL_DestroyWindow(window);
-    window = NULL;
-  }
-  IMG_Quit();
-  SDL_Quit();
+  EngineQuit(window, renderer, controller);
 }
 
 void init_game_state() {
   quitting = false;
   tick = 0;
-}
-
-bool init_window() {
-  if (SDL_Init(INIT_FLAGS) != 0) {
-    WARN("%s:%d: SDL_Init failed in init_window -- SDL_Error: %s", __FILE__,
-         __LINE__, SDL_GetError());
-    return false;
-  }
-
-  window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED,
-                            SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
-                            WINDOW_HEIGHT, WINDOW_FLAGS);
-  if (!window) {
-    WARN("%s:%d: SDL_CreateWindow failed in init_window -- SDL_Error: %s",
-         __FILE__, __LINE__, SDL_GetError());
-    return false;
-  }
-  return true;
-}
-
-bool init_renderer() {
-  renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS);
-  if (!renderer) {
-    WARN("%s:%d: SDL_CreateRenderer failed in init_renderer -- SDL_Error: %s",
-         __FILE__, __LINE__, SDL_GetError());
-    return false;
-  }
-  SDL_RenderSetScale(renderer, RENDERER_SCALE, RENDERER_SCALE);
-  if (SDL_GL_SetSwapInterval(VSYNC) == -1) {
-    WARN("%s:%d: SDL_RenderSetScale failed in init_renderer -- Swap interval "
-         "not supported -- SDL_GetError: %s",
-         __FILE__, __LINE__, SDL_GetError());
-    return false;
-  };
-  return true;
-}
-
-bool init_image() {
-  const int flags = IMG_Init(IMAGE_FLAGS);
-  if ((flags & IMAGE_FLAGS) != IMAGE_FLAGS) {
-    WARN("%s:%d: IMG_Init failed in init_image -- IMG_Error: %s", __FILE__,
-         __LINE__, IMG_GetError());
-    return false;
-  }
-  return true;
-}
-
-bool init_controller() {
-  controller = NULL;
-  if (SDL_NumJoysticks() < 0) {
-    WARN("%s:%d: No joysticks found in init_controller -- OK!", __FILE__,
-         __LINE__);
-    return false;
-  }
-  controller = SDL_GameControllerOpen(JOYSTICK_1);
-  if (!controller) {
-    WARN("%s:%d: SDL_JoystickOpen failed in init_controller -- SDL_Error: %s",
-         __FILE__, __LINE__, SDL_GetError());
-    return false;
-  }
-  return true;
 }
 
 bool init_bug() {

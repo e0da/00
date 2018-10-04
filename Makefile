@@ -22,18 +22,21 @@ CLEAN_ARTIFACTS:=$(BIN) index.* *.o
 
 BUILD_WEB_TEMPDIR:=$(shell tempfile)
 
-BIN_OBJS=$(BIN).o Bug.o
+BIN_OBJS=$(BIN).o bug.o engine.o
 
 all: $(BIN)
 
 $(BIN): $(BIN_OBJS)
 	$(CC) -o $@ $(BIN_OBJS) $(CFLAGS) $(LIBS)
 
-$(BIN).o: main.c Bug.h logging.h
+$(BIN).o: main.c bug.h engine.h logging.h types.h
 	$(CC) -c -o $@ main.c $(CFLAGS)
 
-Bug.o: Bug.h Bug.c logging.h
-	$(CC) -c -o $@ Bug.c $(CFLAGS)
+bug.o: bug.h bug.c logging.h types.h
+	$(CC) -c -o $@ bug.c $(CFLAGS)
+
+engine.o: engine.h engine.c logging.h types.h
+	$(CC) -c -o $@ engine.c $(CFLAGS)
 
 .PHONY: run
 run: $(BIN)
@@ -42,8 +45,8 @@ run: $(BIN)
 .PHONY: web
 web: index.html
 
-index.html: $(EMSDK_ENV) main.c Bug.c Bug.h logging.h
-	bash -c 'source $(EMSDK_ENV); emcc -o $@ main.c Bug.c $(EMCC_FLAGS)'
+index.html: $(EMSDK_ENV) main.c bug.c bug.h logging.h
+	bash -c 'source $(EMSDK_ENV); emcc -o $@ main.c bug.c engine.c $(EMCC_FLAGS)'
 
 .PHONY: serve
 serve: web
