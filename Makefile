@@ -15,13 +15,12 @@ EMCC_FLAGS:=--preload-file assets \
 						-s SDL2_IMAGE_FORMATS='["png"]'
 
 BUILD_ARTIFACTS:=$(BIN)
-BUILD_WEB_ARTIFACTS:=index.html index.js index.wasm index.data
+BUILD_WEB_ARTIFACTS:=index.html index.js index.wasm index.data .gitignore LICENSE COPYING README.md
 BUILD_WEB_JUNK_ARTIFACTS:=index.wasm.map index.wast
-BUILD_WEB_CLEAN_ARTIFACTS:=$(BUILD_WEB_ARTIFACTS) $(BUILD_WEB_JUNK_ARTIFACTS) *.o
+BUILD_WEB_CLEAN_ARTIFACTS:=$(BUILD_WEB_ARTIFACTS) $(BUILD_WEB_JUNK_ARTIFACTS)
 CLEAN_ARTIFACTS:=$(BIN) index.* *.o
 
 BUILD_WEB_TEMPDIR:=$(shell tempfile)
-BUILD_WEB_PAYLOAD:=$(BUILD_WEB_ARTIFACTS) LICENSE COPYING README.md
 
 BIN_OBJS=$(BIN).o Bug.o
 
@@ -69,5 +68,5 @@ web-build: clean web
 	git checkout gh-pages
 	rm -f $(BUILD_WEB_CLEAN_ARTIFACTS)
 	echo "$(BUILD_WEB_ARTIFACTS)" | tr ' ' '\n' | xargs -I% cp -R $(BUILD_WEB_TEMPDIR)/% ./
-	git add --force $(BUILD_WEB_PAYLOAD)
+	git add --force $(BUILD_WEB_ARTIFACTS)
 	git log -n1
