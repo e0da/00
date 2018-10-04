@@ -7,18 +7,18 @@
 Bug *BugCreate(int x, int y, int w, int h, SDL_Renderer *renderer) {
   Bug *bug = (Bug *)malloc(sizeof(Bug));
   if (!bug) {
-    warn("%s:%d: Allocating Bug failed", __FILE__, __LINE__);
+    WARN("%s:%d: Allocating Bug failed", __FILE__, __LINE__);
     return NULL;
   }
   SDL_Surface *surface = IMG_Load(BUG_IMAGE_ASSET);
   if (!surface) {
-    warn("%s:%d: IMG_Load failed in BugCreate -- IMG_Error: %s", __FILE__,
+    WARN("%s:%d: IMG_Load failed in BugCreate -- IMG_Error: %s", __FILE__,
          __LINE__, IMG_GetError());
     return NULL;
   }
   SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
   if (!texture) {
-    warn("%s:%d: SDL_CreateTextureFromSurface failed in BugCreate -- "
+    WARN("%s:%d: SDL_CreateTextureFromSurface failed in BugCreate -- "
          "SDL_Error: %s",
          __FILE__, __LINE__, SDL_GetError());
     return NULL;

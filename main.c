@@ -33,16 +33,16 @@ static Bug *bug;
 static bool quitting;
 static bool initialized;
 
-void init(void);
+bool init(void);
 void iterate(void);
 void quit(void);
 
 void init_game_state(void);
-void init_window(void);
-void init_renderer(void);
-void init_bug(void);
+bool init_window(void);
+bool init_renderer(void);
+bool init_bug(void);
 
-bool update(void); // returns true if a quit event is received
+bool update(void); // returns false if a quit event is received
 
 void draw(void);
 void draw_background(void);
@@ -64,16 +64,25 @@ int main() {
   return 0;
 }
 
-void init() {
+bool init() {
   init_game_state();
-  init_window();
-  init_renderer();
-  init_bug();
-  initialized = true;
+  if (!init_window()) {
+    WARN("%s:%d: init_window failed in init", __FILE__, __LINE__);
+    return false;
+  }
+  if (!init_renderer()) {
+    WARN("%s:%d: init_renderer failed in init", __FILE__, __LINE__);
+    return false;
+  }
+  if (!init_bug()) {
+    WARN("%s:%d: init_bug failed in init", __FILE__, __LINE__);
+    return false;
+  }
+  return true;
 }
 
 void iterate() {
-  quitting = update();
+  quitting = !update();
   draw();
 }
 
@@ -88,49 +97,58 @@ void init_game_state() {
   tick = 0;
 }
 
-void init_window() {
+bool init_window() {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    warn("%s:%d: SDL_Init failed in init -- SDL_Error: %s", __FILE__, __LINE__,
-         SDL_GetError());
-    return;
+    WARN("%s:%d: SDL_Init failed in init_window -- SDL_Error: %s", __FILE__,
+         __LINE__, SDL_GetError());
+    return false;
   }
 
   window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED,
                             SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
                             WINDOW_HEIGHT, WINDOW_FLAGS);
   if (!window) {
-    warn("%s:%d: SDL_CreateWindow failed in init -- SDL_Error: %s", __FILE__,
-         __LINE__, SDL_GetError());
-    return;
+    WARN("%s:%d: SDL_CreateWindow failed in init_window -- SDL_Error: %s",
+         __FILE__, __LINE__, SDL_GetError());
+    return false;
   }
+  return true;
 }
 
-void init_renderer() {
+bool init_renderer() {
   renderer = SDL_CreateRenderer(window, -1, RENDERER_FLAGS);
   if (!renderer) {
-    warn("%s:%d: SDL_CreateRenderer failed in init -- SDL_Error: %s", __FILE__,
-         __LINE__, SDL_GetError());
-    return;
+    WARN("%s:%d: SDL_CreateRenderer failed in init_renderer -- SDL_Error: %s",
+         __FILE__, __LINE__, SDL_GetError());
+    return false;
   }
   SDL_RenderSetScale(renderer, RENDERER_SCALE, RENDERER_SCALE);
   if (SDL_GL_SetSwapInterval(VSYNC) == -1) {
-    warn("%s:%d: Swap interval not supported -- SDL_GetError: %s", __FILE__,
-         __LINE__, SDL_GetError());
-    return;
+    WARN("%s:%d: SDL_RenderSetScale failed in init_renderer -- Swap interval "
+         "not supported -- SDL_GetError: %s",
+         __FILE__, __LINE__, SDL_GetError());
+    return false;
   };
+  return true;
 }
 
-void init_bug() {
+bool init_bug() {
   bug = BugCreate(BUG_INIT_X, BUG_INIT_Y, BUG_SIZE, BUG_SIZE, renderer);
   if (!bug) {
-    warn("%s:%d: BugCreate failed in init_bug", __FILE__, __LINE__);
-    return;
+    WARN("%s:%d: BugCreate failed in init_bug", __FILE__, __LINE__);
+    return false;
   }
+  return true;
 }
 
 bool update() {
-  if (!initialized)
-    init();
+  if (!initialized) {
+    initialized = init();
+    if (!initialized) {
+      WARN("%s:%d: init failed in update", __FILE__, __LINE__);
+      return false;
+    }
+  }
 
   tick++;
 
@@ -138,7 +156,7 @@ bool update() {
   SDL_PollEvent(&event);
   switch (event.type) {
   case SDL_QUIT:
-    return true;
+    return false;
   default:
     break;
   }
@@ -176,7 +194,7 @@ bool update() {
       BugMove(bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
   }
 
-  return false;
+  return true;
 }
 
 void draw() {
@@ -193,7 +211,7 @@ void draw_background() {
 void draw_bug() {
   SDL_Rect *dst = (SDL_Rect *)malloc(sizeof(SDL_Rect));
   if (!dst) {
-    warn("%s:%d: Allocating SDL_Rect failed in draw_bug", __FILE__, __LINE__);
+    WARN("%s:%d: Allocating SDL_Rect failed in draw_bug", __FILE__, __LINE__);
   }
   dst->w = dst->h = BUG_SIZE;
   const int offset = -BUG_SIZE / 2;
@@ -202,7 +220,7 @@ void draw_bug() {
   const SDL_RendererFlip flip =
       bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
   if (SDL_RenderCopyEx(renderer, bug->texture, NULL, dst, 0, 0, flip) < 0) {
-    warn("%s:%d: SDL_RenderCopyEx failed in draw_bug -- SDL_Error: %s",
+    WARN("%s:%d: SDL_RenderCopyEx failed in draw_bug -- SDL_Error: %s",
          __FILE__, __LINE__, SDL_GetError());
   }
   free(dst);

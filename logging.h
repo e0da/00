@@ -5,7 +5,9 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
-#define warn(...) emscripten_log(EM_LOG_WARN, __VA_ARGS__)
+#define WARN(...) emscripten_log(EM_LOG_WARN, __VA_ARGS__)
+#else
+#define WARN(...) warnx(__VA_ARGS__)
 #endif
 
 #endif
