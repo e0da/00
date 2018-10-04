@@ -209,19 +209,15 @@ void draw_background() {
 }
 
 void draw_bug() {
-  SDL_Rect *dst = (SDL_Rect *)malloc(sizeof(SDL_Rect));
-  if (!dst) {
-    WARN("%s:%d: Allocating SDL_Rect failed in draw_bug", __FILE__, __LINE__);
-  }
-  dst->w = dst->h = BUG_SIZE;
   const int offset = -BUG_SIZE / 2;
-  dst->x = bug->x + offset;
-  dst->y = (HEIGHT - bug->y) + offset;
+  SDL_Rect dst = {.w = BUG_SIZE,
+                  .h = BUG_SIZE,
+                  .x = bug->x + offset,
+                  .y = (HEIGHT - bug->y) + offset};
   const SDL_RendererFlip flip =
       bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-  if (SDL_RenderCopyEx(renderer, bug->texture, NULL, dst, 0, 0, flip) < 0) {
+  if (SDL_RenderCopyEx(renderer, bug->texture, NULL, &dst, 0, 0, flip) < 0) {
     WARN("%s:%d: SDL_RenderCopyEx failed in draw_bug -- SDL_Error: %s",
          __FILE__, __LINE__, SDL_GetError());
   }
-  free(dst);
 }
