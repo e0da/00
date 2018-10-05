@@ -87,6 +87,9 @@ void quit() {
     bug = NULL;
   }
   EngineQuit(window, renderer, controller);
+  window = NULL;
+  renderer = NULL;
+  controller = NULL;
 }
 
 void init_game_state() {

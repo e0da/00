@@ -30,18 +30,12 @@ bool EngineInit(SDL_Window **window, SDL_Renderer **renderer,
 
 void EngineQuit(SDL_Window *window, SDL_Renderer *renderer,
                 SDL_GameController *controller) {
-  if (controller) {
+  if (controller)
     SDL_GameControllerClose(controller);
-    controller = NULL;
-  }
-  if (renderer) {
+  if (renderer)
     SDL_DestroyRenderer(renderer);
-    renderer = NULL;
-  }
-  if (window) {
+  if (window)
     SDL_DestroyWindow(window);
-    window = NULL;
-  }
   IMG_Quit();
   SDL_Quit();
 }
