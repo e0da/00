@@ -5,7 +5,7 @@
 #include "engine.h"
 
 typedef struct State {
-  Uint32 tick;
+  uint32_t tick;
   Engine *engine;
   Bug *bug;
 } State;
