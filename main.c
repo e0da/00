@@ -171,7 +171,7 @@ void draw() {
 }
 
 void draw_background() {
-  const Uint32 green = 0xa4ce56ff;
+  const uint32_t green = 0xa4ce56ff;
   SDL_SetRenderDrawColor(state->engine->renderer, R(green), G(green), B(green),
                          A(green));
   SDL_RenderClear(state->engine->renderer);
