@@ -36,7 +36,6 @@ typedef struct {
   Tick tick;
   Engine *engine;
   Bug *bug;
-  bool quitting;
 } State;
 
 #endif

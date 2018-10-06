@@ -44,14 +44,9 @@ int main() {
   emscripten_set_main_loop(iterate, use_request_animation_frame,
                            simulate_infinite_loop);
 #else
-  while (true) {
+  while (true)
     iterate();
-    if (state->quitting)
-      break;
-  }
 #endif
-  quit();
-  return 0;
 }
 
 bool init() {
@@ -69,8 +64,7 @@ bool init() {
     WARN("%s:%d: bug_create failed", __FILE__, __LINE__);
     return false;
   }
-  State initialState = {
-      .tick = 0, .engine = engine, .bug = bug, .quitting = false};
+  State initialState = {.tick = 0, .engine = engine, .bug = bug};
   state = state_create(&initialState);
   if (!state) {
     WARN("%s:%d: state_create failed", __FILE__, __LINE__);
@@ -80,9 +74,8 @@ bool init() {
 }
 
 void iterate() {
-  if (!state) {
-    if (!init())
-      WARN("%s:%d: init failed", __FILE__, __LINE__);
+  if (!state && !init()) {
+    WARN("%s:%d: init failed", __FILE__, __LINE__);
     return;
   }
   update();
@@ -102,6 +95,11 @@ void quit() {
   state->engine = NULL;
   state_destroy(state);
   state = NULL;
+#ifdef __EMSCRIPTEN__
+  emscripten_force_exit(0);
+#else
+  exit(0);
+#endif
 }
 
 void update() {
@@ -112,7 +110,7 @@ void update() {
     SDL_PollEvent(&event);
     switch (event.type) {
     case SDL_QUIT:
-      state->quitting = true;
+      quit();
     default:
       break;
     }
@@ -128,10 +126,12 @@ void update() {
       bug_move(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (keys[SDL_SCANCODE_UP])
       bug_move(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
+    if (keys[SDL_SCANCODE_ESCAPE])
+      quit();
   }
 
-  { /* when the left mouse button is held move toward the cursor unless it's so
-       close that we'd overshoot */
+  { /* when the left mouse button is held move toward the cursor unless it's
+       so close that we'd overshoot */
     int x, y, dx, dy;
     if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
       y = state->engine->scaled_window_height - y; // so y increases upward
