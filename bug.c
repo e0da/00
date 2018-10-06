@@ -11,7 +11,7 @@ static const int bug_image_width = 32;
 const int BUG_SIZE = bug_image_width * bug_scale;
 const int BUG_SPEED = 10;
 
-Bug *BugCreate(int x, int y, int w, int h, SDL_Renderer *renderer) {
+Bug *bug_create(int x, int y, int w, int h, SDL_Renderer *renderer) {
   Bug *bug = (Bug *)malloc(sizeof(Bug));
   if (!bug) {
     WARN("%s:%d: Allocating Bug failed", __FILE__, __LINE__);
@@ -40,12 +40,12 @@ Bug *BugCreate(int x, int y, int w, int h, SDL_Renderer *renderer) {
   return bug;
 }
 
-void BugDestroy(Bug *bug) {
+void bug_destroy(Bug *bug) {
   SDL_DestroyTexture(bug->texture);
   free(bug);
 }
 
-void BugMove(Bug *bug, Direction direction, int width, int height) {
+void bug_move(Bug *bug, Direction direction, int width, int height) {
   switch (direction) {
   case RIGHT:
     bug->face = RIGHT;

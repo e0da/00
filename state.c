@@ -2,7 +2,7 @@
 
 #include "logging.h"
 
-State *StateCreate(const State *initialState) {
+State *state_create(const State *initialState) {
   State *state = (State *)malloc(sizeof(State));
   if (!state) {
     WARN("%s:%d: Allocating State failed", __FILE__, __LINE__);
@@ -12,4 +12,4 @@ State *StateCreate(const State *initialState) {
   return state;
 }
 
-void StateDestroy(State *state) { free(state); }
+void state_destroy(State *state) { free(state); }

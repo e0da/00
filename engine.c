@@ -13,7 +13,7 @@ static bool init_renderer(SDL_Renderer **renderer, SDL_Window *window,
 static bool init_image(void);
 static bool init_controller(SDL_GameController **controller);
 
-bool EngineInit(SDL_Window **window, SDL_Renderer **renderer,
+bool engine_init(SDL_Window **window, SDL_Renderer **renderer,
                 SDL_GameController **controller, const int width,
                 const int height, const int scale, const char *title) {
   if (!init_sdl()) {
@@ -38,7 +38,7 @@ bool EngineInit(SDL_Window **window, SDL_Renderer **renderer,
   return true;
 }
 
-void EngineQuit(SDL_Window *window, SDL_Renderer *renderer,
+void engine_quit(SDL_Window *window, SDL_Renderer *renderer,
                 SDL_GameController *controller) {
   if (controller)
     SDL_GameControllerClose(controller);

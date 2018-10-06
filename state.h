@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-State *StateCreate(const State *initialState);
-void StateDestroy(State *state);
+State *state_create(const State *initialState);
+void state_destroy(State *state);
 
 #endif

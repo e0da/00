@@ -55,16 +55,16 @@ bool init() {
   SDL_Window *window;
   SDL_Renderer *renderer;
   SDL_GameController *controller;
-  if (!EngineInit(&window, &renderer, &controller, SCALED_WINDOW_WIDTH,
-                  SCALED_WINDOW_HEIGHT, RENDERER_SCALE, WINDOW_TITLE)) {
-    WARN("%s:%d: EngineInit failed", __FILE__, __LINE__);
+  if (!engine_init(&window, &renderer, &controller, SCALED_WINDOW_WIDTH,
+                   SCALED_WINDOW_HEIGHT, RENDERER_SCALE, WINDOW_TITLE)) {
+    WARN("%s:%d: engine_init failed", __FILE__, __LINE__);
     return false;
   }
   static const int bug_init_x = WINDOW_WIDTH / 2;
   static const int bug_init_y = WINDOW_HEIGHT / 2;
-  Bug *bug = BugCreate(bug_init_x, bug_init_y, BUG_SIZE, BUG_SIZE, renderer);
+  Bug *bug = bug_create(bug_init_x, bug_init_y, BUG_SIZE, BUG_SIZE, renderer);
   if (!bug) {
-    WARN("%s:%d: BugCreate failed", __FILE__, __LINE__);
+    WARN("%s:%d: bug_create failed", __FILE__, __LINE__);
     return false;
   }
   State initialState = {.tick = 0,
@@ -73,9 +73,9 @@ bool init() {
                         .controller = controller,
                         .bug = bug,
                         .quitting = false};
-  state = StateCreate(&initialState);
+  state = state_create(&initialState);
   if (!state) {
-    WARN("%s:%d: StateCreate failed", __FILE__, __LINE__);
+    WARN("%s:%d: state_create failed", __FILE__, __LINE__);
     return false;
   }
   return true;
@@ -97,13 +97,13 @@ void quit() {
     return;
   }
   if (state->bug)
-    BugDestroy(state->bug);
+    bug_destroy(state->bug);
   state->bug = NULL;
-  EngineQuit(state->window, state->renderer, state->controller);
+  engine_quit(state->window, state->renderer, state->controller);
   state->window = NULL;
   state->renderer = NULL;
   state->controller = NULL;
-  StateDestroy(state);
+  state_destroy(state);
   state = NULL;
 }
 
@@ -124,13 +124,13 @@ void update() {
   { /* held keys */
     const Uint8 *keys = SDL_GetKeyboardState(NULL);
     if (keys[SDL_SCANCODE_RIGHT])
-      BugMove(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
+      bug_move(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (keys[SDL_SCANCODE_DOWN])
-      BugMove(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
+      bug_move(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (keys[SDL_SCANCODE_LEFT])
-      BugMove(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
+      bug_move(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (keys[SDL_SCANCODE_UP])
-      BugMove(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
+      bug_move(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
   }
 
   { /* when the left mouse button is held move toward the cursor unless it's so
@@ -141,13 +141,13 @@ void update() {
       dx = x - (state->bug->x * RENDERER_SCALE);
       dy = y - (state->bug->y * RENDERER_SCALE);
       if (dx > 0 && dx > BUG_SPEED)
-        BugMove(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
+        bug_move(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
       if (dy < 0 && dy < -BUG_SPEED)
-        BugMove(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
+        bug_move(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
       if (dx < 0 && dx < -BUG_SPEED)
-        BugMove(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
+        bug_move(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
       if (dy > 0 && dy > BUG_SPEED)
-        BugMove(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
+        bug_move(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
     }
   }
 
@@ -155,16 +155,16 @@ void update() {
   if (state->controller) {
     if (SDL_GameControllerGetButton(state->controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
-      BugMove(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
+      bug_move(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (SDL_GameControllerGetButton(state->controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_DOWN))
-      BugMove(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
+      bug_move(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (SDL_GameControllerGetButton(state->controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_LEFT))
-      BugMove(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
+      bug_move(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (SDL_GameControllerGetButton(state->controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_UP))
-      BugMove(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
+      bug_move(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
   }
 }
 

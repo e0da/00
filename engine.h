@@ -5,11 +5,13 @@
 
 #include "types.h"
 
-bool EngineInit(SDL_Window **window, SDL_Renderer **renderer,
-                SDL_GameController **controller, const int width,
-                const int height, const int scale, const char *title);
+// TODO Create Engine struct to hole all this stuff
 
-void EngineQuit(SDL_Window *window, SDL_Renderer *renderer,
-                SDL_GameController *controller);
+bool engine_init(SDL_Window **window, SDL_Renderer **renderer,
+                 SDL_GameController **controller, const int width,
+                 const int height, const int scale, const char *title);
+
+void engine_quit(SDL_Window *window, SDL_Renderer *renderer,
+                 SDL_GameController *controller);
 
 #endif

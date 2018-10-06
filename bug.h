@@ -8,9 +8,9 @@
 extern const int BUG_SIZE;
 extern const int BUG_SPEED;
 
-Bug *BugCreate(int x, int y, int w, int h, SDL_Renderer *renderer);
-void BugDestroy(Bug *bug);
+Bug *bug_create(int x, int y, int w, int h, SDL_Renderer *renderer);
+void bug_destroy(Bug *bug);
 
-void BugMove(Bug *bug, Direction direction, int width, int height);
+void bug_move(Bug *bug, Direction direction, int width, int height);
 
 #endif
