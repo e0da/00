@@ -5,13 +5,20 @@
 #include "logging.h"
 #include "types.h"
 
+static const int bug_scale = 5;
+static const int bug_image_width = 32;
+
+const int BUG_SIZE = bug_image_width * bug_scale;
+const int BUG_SPEED = 10;
+
 Bug *BugCreate(int x, int y, int w, int h, SDL_Renderer *renderer) {
   Bug *bug = (Bug *)malloc(sizeof(Bug));
   if (!bug) {
     WARN("%s:%d: Allocating Bug failed", __FILE__, __LINE__);
     return NULL;
   }
-  SDL_Surface *surface = IMG_Load(BUG_IMAGE_ASSET);
+  static const char *bug_image_asset = "assets/bug.png";
+  SDL_Surface *surface = IMG_Load(bug_image_asset);
   if (!surface) {
     WARN("%s:%d: IMG_Load failed in BugCreate -- IMG_Error: %s", __FILE__,
          __LINE__, IMG_GetError());
@@ -39,7 +46,7 @@ void BugDestroy(Bug *bug) {
   free(bug);
 }
 
-void BugMove(Bug *bug, direction direction, int width, int height) {
+void BugMove(Bug *bug, Direction direction, int width, int height) {
   switch (direction) {
   case RIGHT:
     bug->face = RIGHT;
@@ -56,8 +63,8 @@ void BugMove(Bug *bug, direction direction, int width, int height) {
     bug->y += BUG_SPEED;
     break;
   }
-  int half_w = bug->w / 2;
-  int half_h = bug->h / 2;
+  const int half_w = bug->w / 2;
+  const int half_h = bug->h / 2;
   if (bug->x - half_w < 0)
     bug->x = 0 + half_w;
   if (bug->x + half_w > width)

@@ -9,6 +9,7 @@
     "stdbool.h": "c",
     "bug.h": "c",
     "types.h": "c",
-    "logging.h": "c"
+    "logging.h": "c",
+    "engine.h": "c"
   }
 }

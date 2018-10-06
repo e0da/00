@@ -9,26 +9,18 @@
 // TODO I don't like how calculating RENDERER_SCALE works
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
-#define RENDERER_SCALE 1
+static const int RENDERER_SCALE = 1;
 #else
-#define RENDERER_SCALE 2
+static const int RENDERER_SCALE = 2;
 #endif
 
-#define WIDTH 1024
-#define HEIGHT 768
-#define WINDOW_TITLE "00: o hai windoe"
-#define WINDOW_WIDTH (WIDTH * RENDERER_SCALE)
-#define WINDOW_HEIGHT (HEIGHT * RENDERER_SCALE)
+static const char *WINDOW_TITLE = "00: o hai windoe";
+static const int WINDOW_WIDTH = 1024;
+static const int WINDOW_HEIGHT = 768;
+static const int SCALED_WINDOW_WIDTH = WINDOW_WIDTH * RENDERER_SCALE;
+static const int SCALED_WINDOW_HEIGHT = WINDOW_HEIGHT * RENDERER_SCALE;
 
-#define BUG_INIT_X WIDTH / 2
-#define BUG_INIT_Y HEIGHT / 2
-
-#ifdef __EMSCRIPTEN__
-#define USE_REQUEST_ANIMATION_FRAME 0
-#define SIMULATE_INFINITE_LOOP 1
-#endif
-
-static TICK tick;
+static Tick tick;
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_GameController *controller;
@@ -52,8 +44,10 @@ void draw_bug(void);
 int main() {
   initialized = false;
 #ifdef __EMSCRIPTEN__
-  emscripten_set_main_loop(iterate, USE_REQUEST_ANIMATION_FRAME,
-                           SIMULATE_INFINITE_LOOP);
+  static const int use_request_animation_frame = 0;
+  static const int simulate_infinite_loop = 1;
+  emscripten_set_main_loop(iterate, use_request_animation_frame,
+                           simulate_infinite_loop);
 #else
   while (true) {
     iterate();
@@ -67,7 +61,7 @@ int main() {
 
 bool init() {
   init_game_state();
-  if (!EngineInit(&window, &renderer, &controller, WINDOW_WIDTH, WINDOW_HEIGHT,
+  if (!EngineInit(&window, &renderer, &controller, SCALED_WINDOW_WIDTH, SCALED_WINDOW_HEIGHT,
                   RENDERER_SCALE, WINDOW_TITLE)) {
     WARN("%s:%d: EngineInit failed in init", __FILE__, __LINE__);
     return false;
@@ -101,7 +95,9 @@ void init_game_state() {
 }
 
 bool init_bug() {
-  bug = BugCreate(BUG_INIT_X, BUG_INIT_Y, BUG_SIZE, BUG_SIZE, renderer);
+  static const int bug_init_x = WINDOW_WIDTH / 2;
+  static const int bug_init_y = WINDOW_HEIGHT / 2;
+  bug = BugCreate(bug_init_x, bug_init_y, BUG_SIZE, BUG_SIZE, renderer);
   if (!bug) {
     WARN("%s:%d: BugCreate failed in init_bug", __FILE__, __LINE__);
     return false;
@@ -134,30 +130,30 @@ bool update() {
   { /* held keys */
     const Uint8 *keys = SDL_GetKeyboardState(NULL);
     if (keys[SDL_SCANCODE_RIGHT])
-      BugMove(bug, RIGHT, WIDTH, HEIGHT);
+      BugMove(bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (keys[SDL_SCANCODE_DOWN])
-      BugMove(bug, DOWN, WIDTH, HEIGHT);
+      BugMove(bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (keys[SDL_SCANCODE_LEFT])
-      BugMove(bug, LEFT, WIDTH, HEIGHT);
+      BugMove(bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (keys[SDL_SCANCODE_UP])
-      BugMove(bug, UP, WIDTH, HEIGHT);
+      BugMove(bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
   }
 
   { /* when the left mouse button is held move toward the cursor unless it's so
        close that we'd overshoot */
     int x, y, dx, dy;
     if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-      y = WINDOW_HEIGHT - y; // so y increases upward
+      y = SCALED_WINDOW_HEIGHT - y; // so y increases upward
       dx = x - (bug->x * RENDERER_SCALE);
       dy = y - (bug->y * RENDERER_SCALE);
       if (dx > 0 && dx > BUG_SPEED)
-        BugMove(bug, RIGHT, WIDTH, HEIGHT);
+        BugMove(bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
       if (dy < 0 && dy < -BUG_SPEED)
-        BugMove(bug, DOWN, WIDTH, HEIGHT);
+        BugMove(bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
       if (dx < 0 && dx < -BUG_SPEED)
-        BugMove(bug, LEFT, WIDTH, HEIGHT);
+        BugMove(bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
       if (dy > 0 && dy > BUG_SPEED)
-        BugMove(bug, UP, WIDTH, HEIGHT);
+        BugMove(bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
     }
   }
 
@@ -165,15 +161,15 @@ bool update() {
   if (controller) {
     if (SDL_GameControllerGetButton(controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
-      BugMove(bug, RIGHT, WIDTH, HEIGHT);
+      BugMove(bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (SDL_GameControllerGetButton(controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_DOWN))
-      BugMove(bug, DOWN, WIDTH, HEIGHT);
+      BugMove(bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (SDL_GameControllerGetButton(controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_LEFT))
-      BugMove(bug, LEFT, WIDTH, HEIGHT);
+      BugMove(bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
     if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_UP))
-      BugMove(bug, UP, WIDTH, HEIGHT);
+      BugMove(bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
   }
 
   return true;
@@ -195,7 +191,7 @@ void draw_bug() {
   SDL_Rect dst = {.w = BUG_SIZE,
                   .h = BUG_SIZE,
                   .x = bug->x + offset,
-                  .y = (HEIGHT - bug->y) + offset};
+                  .y = (WINDOW_HEIGHT - bug->y) + offset};
   const SDL_RendererFlip flip =
       bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
   if (SDL_RenderCopyEx(renderer, bug->texture, NULL, &dst, 0, 0, flip) < 0) {

@@ -5,22 +5,20 @@
 
 #include "types.h"
 
-#define BUG_IMAGE_ASSET "assets/bug.png"
-#define BUG_SCALE 5
-#define BUG_SIZE 32 * BUG_SCALE
-#define BUG_SPEED 10
+extern const int BUG_SIZE;
+extern const int BUG_SPEED;
 
 typedef struct {
   SDL_Texture *texture;
   int x, y;
   int w, h;
-  direction face;
+  Direction face;
   char unused[4];
 } Bug;
 
 Bug *BugCreate(int x, int y, int w, int h, SDL_Renderer *renderer);
 void BugDestroy(Bug *bug);
 
-void BugMove(Bug *bug, direction direction, int width, int height);
+void BugMove(Bug *bug, Direction direction, int width, int height);
 
 #endif
