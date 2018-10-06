@@ -6,6 +6,7 @@
   "files.associations": {
     "c++config.h": "c",
     "cstdbool": "c",
-    "stdbool.h": "c"
+    "stdbool.h": "c",
+    "bug.h": "c"
   }
 }
