@@ -18,8 +18,6 @@ static const int RENDERER_SCALE = 2;
 static const char *WINDOW_TITLE = "00: o hai windoe";
 static const int WINDOW_WIDTH = 1024;
 static const int WINDOW_HEIGHT = 768;
-static const int SCALED_WINDOW_WIDTH = WINDOW_WIDTH * RENDERER_SCALE;
-static const int SCALED_WINDOW_HEIGHT = WINDOW_HEIGHT * RENDERER_SCALE;
 
 bool init(void);
 void iterate(void);
@@ -52,27 +50,22 @@ int main() {
 }
 
 bool init() {
-  SDL_Window *window;
-  SDL_Renderer *renderer;
-  SDL_GameController *controller;
-  if (!engine_init(&window, &renderer, &controller, SCALED_WINDOW_WIDTH,
-                   SCALED_WINDOW_HEIGHT, RENDERER_SCALE, WINDOW_TITLE)) {
-    WARN("%s:%d: engine_init failed", __FILE__, __LINE__);
+  Engine *engine =
+      engine_create(WINDOW_WIDTH, WINDOW_HEIGHT, RENDERER_SCALE, WINDOW_TITLE);
+  if (!engine) {
+    WARN("%s:%d: engine_create failed", __FILE__, __LINE__);
     return false;
   }
   static const int bug_init_x = WINDOW_WIDTH / 2;
   static const int bug_init_y = WINDOW_HEIGHT / 2;
-  Bug *bug = bug_create(bug_init_x, bug_init_y, BUG_SIZE, BUG_SIZE, renderer);
+  Bug *bug =
+      bug_create(bug_init_x, bug_init_y, BUG_SIZE, BUG_SIZE, engine->renderer);
   if (!bug) {
     WARN("%s:%d: bug_create failed", __FILE__, __LINE__);
     return false;
   }
-  State initialState = {.tick = 0,
-                        .window = window,
-                        .renderer = renderer,
-                        .controller = controller,
-                        .bug = bug,
-                        .quitting = false};
+  State initialState = {
+      .tick = 0, .engine = engine, .bug = bug, .quitting = false};
   state = state_create(&initialState);
   if (!state) {
     WARN("%s:%d: state_create failed", __FILE__, __LINE__);
@@ -99,10 +92,9 @@ void quit() {
   if (state->bug)
     bug_destroy(state->bug);
   state->bug = NULL;
-  engine_quit(state->window, state->renderer, state->controller);
-  state->window = NULL;
-  state->renderer = NULL;
-  state->controller = NULL;
+  if (state->engine)
+    engine_destroy(state->engine);
+  state->engine = NULL;
   state_destroy(state);
   state = NULL;
 }
@@ -137,7 +129,7 @@ void update() {
        close that we'd overshoot */
     int x, y, dx, dy;
     if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-      y = SCALED_WINDOW_HEIGHT - y; // so y increases upward
+      y = state->engine->scaled_window_height - y; // so y increases upward
       dx = x - (state->bug->x * RENDERER_SCALE);
       dy = y - (state->bug->y * RENDERER_SCALE);
       if (dx > 0 && dx > BUG_SPEED)
@@ -152,17 +144,17 @@ void update() {
   }
 
   /* game controller */
-  if (state->controller) {
-    if (SDL_GameControllerGetButton(state->controller,
+  if (state->engine->controller) {
+    if (SDL_GameControllerGetButton(state->engine->controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
       bug_move(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (SDL_GameControllerGetButton(state->controller,
+    if (SDL_GameControllerGetButton(state->engine->controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_DOWN))
       bug_move(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (SDL_GameControllerGetButton(state->controller,
+    if (SDL_GameControllerGetButton(state->engine->controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_LEFT))
       bug_move(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (SDL_GameControllerGetButton(state->controller,
+    if (SDL_GameControllerGetButton(state->engine->controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_UP))
       bug_move(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
   }
@@ -171,12 +163,12 @@ void update() {
 void draw() {
   draw_background();
   draw_bug();
-  SDL_RenderPresent(state->renderer);
+  SDL_RenderPresent(state->engine->renderer);
 }
 
 void draw_background() {
-  SDL_SetRenderDrawColor(state->renderer, 164, 206, 86, 255);
-  SDL_RenderClear(state->renderer);
+  SDL_SetRenderDrawColor(state->engine->renderer, 164, 206, 86, 255);
+  SDL_RenderClear(state->engine->renderer);
 }
 
 void draw_bug() {
@@ -187,8 +179,8 @@ void draw_bug() {
                   .y = (WINDOW_HEIGHT - state->bug->y) + offset};
   const SDL_RendererFlip flip =
       state->bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-  if (SDL_RenderCopyEx(state->renderer, state->bug->texture, NULL, &dst, 0, 0,
-                       flip) < 0) {
+  if (SDL_RenderCopyEx(state->engine->renderer, state->bug->texture, NULL, &dst,
+                       0, 0, flip) < 0) {
     WARN("%s:%d: SDL_RenderCopyEx failed -- SDL_Error: %s", __FILE__, __LINE__,
          SDL_GetError());
   }

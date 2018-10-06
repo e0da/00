@@ -13,39 +13,64 @@ static bool init_renderer(SDL_Renderer **renderer, SDL_Window *window,
 static bool init_image(void);
 static bool init_controller(SDL_GameController **controller);
 
-bool engine_init(SDL_Window **window, SDL_Renderer **renderer,
-                SDL_GameController **controller, const int width,
-                const int height, const int scale, const char *title) {
+Engine *engine_create(const int window_width, const int window_height,
+                      const int renderer_scale, const char *window_title) {
+  const int scaled_window_width = window_width * renderer_scale;
+  const int scaled_window_height = window_height * renderer_scale;
+  SDL_Window *window;
+  SDL_Renderer *renderer;
+  SDL_GameController *controller;
   if (!init_sdl()) {
     WARN("%s:%d: init_sdl failed", __FILE__, __LINE__);
-    return false;
+    return NULL;
   }
-  if (!init_window(window, width, height, title)) {
+  if (!init_window(&window, scaled_window_width, scaled_window_height,
+                   window_title)) {
     WARN("%s:%d: init_window failed", __FILE__, __LINE__);
-    return false;
+    return NULL;
   }
-  if (!init_renderer(renderer, *window, scale)) {
+  if (!init_renderer(&renderer, window, renderer_scale)) {
     WARN("%s:%d: init_renderer failed", __FILE__, __LINE__);
-    return false;
+    return NULL;
   }
   if (!init_image()) {
     WARN("%s:%d: init_image failed", __FILE__, __LINE__);
-    return false;
+    return NULL;
   }
-  if (!init_controller(controller)) {
+  if (!init_controller(&controller)) {
     WARN("%s:%d: init controller failed -- OK!", __FILE__, __LINE__);
   }
-  return true;
+  const Engine initialEngine = {.window = window,
+                                .renderer = renderer,
+                                .controller = controller,
+                                .window_width = window_width,
+                                .window_height = window_height,
+                                .renderer_scale = renderer_scale,
+                                .scaled_window_width = scaled_window_width,
+                                .scaled_window_height = scaled_window_height,
+                                .window_title = window_title};
+  Engine *engine = (Engine *)malloc(sizeof(Engine));
+  if (!engine) {
+    printf("%s:%d: Allocating Engine failed", __FILE__, __LINE__);
+    return NULL;
+  }
+  memcpy(engine, &initialEngine, sizeof(Engine));
+  return engine;
 }
 
-void engine_quit(SDL_Window *window, SDL_Renderer *renderer,
-                SDL_GameController *controller) {
-  if (controller)
-    SDL_GameControllerClose(controller);
-  if (renderer)
-    SDL_DestroyRenderer(renderer);
-  if (window)
-    SDL_DestroyWindow(window);
+void engine_destroy(Engine *engine) {
+  if (engine->controller) {
+    SDL_GameControllerClose(engine->controller);
+    engine->controller = NULL;
+  }
+  if (engine->renderer) {
+    SDL_DestroyRenderer(engine->renderer);
+    engine->renderer = NULL;
+  }
+  if (engine->window) {
+    SDL_DestroyWindow(engine->window);
+    engine->window = NULL;
+  }
   IMG_Quit();
   SDL_Quit();
 }
