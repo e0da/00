@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
+#include "types.h"
+
 typedef Uint32 Tick;
 
 /* The order is RIGHT, DOWN, LEFT, UP so that
@@ -12,5 +14,21 @@ typedef Uint32 Tick;
 typedef enum { RIGHT, DOWN, LEFT, UP } Direction;
 
 typedef SDL_Point Point;
+
+typedef struct {
+  SDL_Texture *texture;
+  int x, y;
+  int w, h;
+  Direction face;
+} Bug;
+
+typedef struct {
+  Tick tick;
+  SDL_Window *window;
+  SDL_Renderer *renderer;
+  SDL_GameController *controller;
+  Bug *bug;
+  bool quitting;
+} State;
 
 #endif

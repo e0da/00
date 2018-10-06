@@ -1,7 +1,7 @@
 BIN=00
 CC:=clang
 LIBS:=-lSDL2 -lSDL2_image
-CFLAGS:= -std=c11 -O3 -Weverything -pedantic -ggdb
+CFLAGS:= -std=c11 -O3 -Weverything -Wno-padded -pedantic -ggdb
 
 EMSDK_ENV:=${HOME}/src/emsdk/emsdk_env.sh
 

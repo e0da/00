@@ -8,14 +8,6 @@
 extern const int BUG_SIZE;
 extern const int BUG_SPEED;
 
-typedef struct {
-  SDL_Texture *texture;
-  int x, y;
-  int w, h;
-  Direction face;
-  char unused[4];
-} Bug;
-
 Bug *BugCreate(int x, int y, int w, int h, SDL_Renderer *renderer);
 void BugDestroy(Bug *bug);
 

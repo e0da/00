@@ -1,15 +1,16 @@
 {
+  "c-cpp-flylint.clang.extraArgs": ["-Wno-padded"],
   "c-cpp-flylint.clang.standard": ["c11"],
   "c-cpp-flylint.cppcheck.enable": false,
   "c-cpp-flylint.flexelint.enable": false,
   "c-cpp-flylint.language": "c",
   "files.associations": {
+    "bug.h": "c",
     "c++config.h": "c",
     "cstdbool": "c",
-    "stdbool.h": "c",
-    "bug.h": "c",
-    "types.h": "c",
+    "engine.h": "c",
     "logging.h": "c",
-    "engine.h": "c"
+    "stdbool.h": "c",
+    "types.h": "c"
   }
 }
