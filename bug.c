@@ -1,9 +1,8 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-
 #include "bug.h"
 #include "direction.h"
 #include "logging.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 static const int bug_scale = 5;
 static const int bug_image_width = 32;

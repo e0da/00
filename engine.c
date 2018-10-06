@@ -1,9 +1,8 @@
+#include "engine.h"
+#include "logging.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdbool.h>
-
-#include "engine.h"
-#include "logging.h"
 
 static bool init_sdl(void);
 static bool init_window(SDL_Window **window, const int width, const int height,

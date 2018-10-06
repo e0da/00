@@ -1,9 +1,8 @@
 #ifndef BUG_H
 #define BUG_H
 
-#include <SDL2/SDL.h>
-
 #include "direction.h"
+#include <SDL2/SDL.h>
 
 extern const int BUG_SIZE;
 extern const int BUG_SPEED;

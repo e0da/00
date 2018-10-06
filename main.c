@@ -1,11 +1,10 @@
-#include <SDL2/SDL.h>
-#include <stdbool.h>
-
 #include "bug.h"
 #include "direction.h"
 #include "engine.h"
 #include "logging.h"
 #include "state.h"
+#include <SDL2/SDL.h>
+#include <stdbool.h>
 
 #define R(X) ((X & 0xff000000) >> 24)
 #define G(X) ((X & 0x00ff0000) >> 16)

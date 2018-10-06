@@ -12,6 +12,8 @@
     "logging.h": "c",
     "stdbool.h": "c",
     "types.h": "c",
-    "state.h": "c"
+    "state.h": "c",
+    "direction.h": "c",
+    "sdl.h": "c"
   }
 }
