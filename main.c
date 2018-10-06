@@ -7,6 +7,11 @@
 #include "state.h"
 #include "types.h"
 
+#define R(X) ((X & 0xff000000) >> 24)
+#define G(X) ((X & 0x00ff0000) >> 16)
+#define B(X) ((X & 0x0000ff00) >> 8)
+#define A(X) (X & 0x000000ff)
+
 // TODO I don't like how calculating RENDERER_SCALE works
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -167,7 +172,9 @@ void draw() {
 }
 
 void draw_background() {
-  SDL_SetRenderDrawColor(state->engine->renderer, 164, 206, 86, 255);
+  const Uint32 green = 0xa4ce56ff;
+  SDL_SetRenderDrawColor(state->engine->renderer, R(green), G(green), B(green),
+                         A(green));
   SDL_RenderClear(state->engine->renderer);
 }
 
