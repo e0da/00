@@ -1,13 +1,14 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include "types.h"
+#include "bug.h"
+#include "engine.h"
 
-struct State {
+typedef struct State {
   Uint32 tick;
   Engine *engine;
   Bug *bug;
-};
+} State;
 
 State *state_create(const State *initialState);
 void state_destroy(State *state);

@@ -1,5 +1,4 @@
 #include "state.h"
-
 #include "logging.h"
 
 State *state_create(const State *initialState) {

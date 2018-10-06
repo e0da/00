@@ -29,16 +29,16 @@ all: $(BIN)
 $(BIN): $(BIN_OBJS)
 	$(CC) -o $@ $(BIN_OBJS) $(CFLAGS) $(LIBS)
 
-main.o: main.c bug.h engine.h logging.h state.h types.h
+main.o: main.c bug.h direction.h engine.h logging.h state.h
 	$(CC) -c -o $@ main.c $(CFLAGS)
 
-bug.o: bug.h bug.c logging.h types.h
+bug.o: bug.c bug.h direction.h logging.h
 	$(CC) -c -o $@ bug.c $(CFLAGS)
 
-engine.o: engine.h engine.c logging.h types.h
+engine.o: engine.h engine.c direction.h logging.h
 	$(CC) -c -o $@ engine.c $(CFLAGS)
 
-state.o: state.h state.c logging.h types.h
+state.o: state.c state.h bug.c engine.h logging.h
 	$(CC) -c -o $@ state.c $(CFLAGS)
 
 .PHONY: run
