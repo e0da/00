@@ -7,6 +7,8 @@
     "c++config.h": "c",
     "cstdbool": "c",
     "stdbool.h": "c",
-    "bug.h": "c"
+    "bug.h": "c",
+    "types.h": "c",
+    "logging.h": "c"
   }
 }
