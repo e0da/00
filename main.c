@@ -4,6 +4,7 @@
 #include "bug.h"
 #include "engine.h"
 #include "logging.h"
+#include "state.h"
 #include "types.h"
 
 // TODO I don't like how calculating RENDERER_SCALE works
@@ -66,18 +67,17 @@ bool init() {
     WARN("%s:%d: BugCreate failed", __FILE__, __LINE__);
     return false;
   }
-  State tmpStore = {.tick = 0,
-                    .window = window,
-                    .renderer = renderer,
-                    .controller = controller,
-                    .bug = bug,
-                    .quitting = false};
-  state = (State *)malloc(sizeof(State));
+  State initialState = {.tick = 0,
+                        .window = window,
+                        .renderer = renderer,
+                        .controller = controller,
+                        .bug = bug,
+                        .quitting = false};
+  state = StateCreate(&initialState);
   if (!state) {
-    WARN("%s:%d: Allocating State failed", __FILE__, __LINE__);
+    WARN("%s:%d: StateCreate failed", __FILE__, __LINE__);
     return false;
   }
-  memcpy(state, &tmpStore, sizeof(State));
   return true;
 }
 
@@ -92,14 +92,19 @@ void iterate() {
 }
 
 void quit() {
-  if (state->bug) {
-    BugDestroy(state->bug);
-    state->bug = NULL;
+  if (!state) {
+    WARN("%s:%d: state is NULL while quitting. WEIRD!", __FILE__, __LINE__);
+    return;
   }
+  if (state->bug)
+    BugDestroy(state->bug);
+  state->bug = NULL;
   EngineQuit(state->window, state->renderer, state->controller);
   state->window = NULL;
   state->renderer = NULL;
   state->controller = NULL;
+  StateDestroy(state);
+  state = NULL;
 }
 
 void update() {
@@ -184,7 +189,7 @@ void draw_bug() {
       state->bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
   if (SDL_RenderCopyEx(state->renderer, state->bug->texture, NULL, &dst, 0, 0,
                        flip) < 0) {
-    WARN("%s:%d: SDL_RenderCopyEx failed in draw_bug -- SDL_Error: %s",
-         __FILE__, __LINE__, SDL_GetError());
+    WARN("%s:%d: SDL_RenderCopyEx failed -- SDL_Error: %s", __FILE__, __LINE__,
+         SDL_GetError());
   }
 }

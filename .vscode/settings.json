@@ -11,6 +11,7 @@
     "engine.h": "c",
     "logging.h": "c",
     "stdbool.h": "c",
-    "types.h": "c"
+    "types.h": "c",
+    "state.h": "c"
   }
 }

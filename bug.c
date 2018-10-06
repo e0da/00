@@ -20,14 +20,13 @@ Bug *BugCreate(int x, int y, int w, int h, SDL_Renderer *renderer) {
   static const char *bug_image_asset = "assets/bug.png";
   SDL_Surface *surface = IMG_Load(bug_image_asset);
   if (!surface) {
-    WARN("%s:%d: IMG_Load failed in BugCreate -- IMG_Error: %s", __FILE__,
-         __LINE__, IMG_GetError());
+    WARN("%s:%d: IMG_Load failed -- IMG_Error: %s", __FILE__, __LINE__,
+         IMG_GetError());
     return NULL;
   }
   SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
   if (!texture) {
-    WARN("%s:%d: SDL_CreateTextureFromSurface failed in BugCreate -- "
-         "SDL_Error: %s",
+    WARN("%s:%d: SDL_CreateTextureFromSurface failed -- SDL_Error: %s",
          __FILE__, __LINE__, SDL_GetError());
     return NULL;
   }
