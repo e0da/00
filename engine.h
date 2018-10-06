@@ -5,7 +5,17 @@
 
 #include "types.h"
 
-// TODO Create Engine struct to hole all this stuff
+struct Engine {
+  SDL_Window *window;
+  SDL_Renderer *renderer;
+  SDL_GameController *controller;
+  const int window_width;
+  const int window_height;
+  const int renderer_scale;
+  const int scaled_window_width;
+  const int scaled_window_height;
+  const char *window_title;
+};
 
 Engine *engine_create(const int window_width, const int window_height,
                       const int renderer_scale, const char *window_title);
