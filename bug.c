@@ -46,6 +46,8 @@ void bug_destroy(Bug *bug) {
 
 void bug_move(Bug *bug, Direction direction, int width, int height) {
   switch (direction) {
+  case NO_DIRECTION:
+    break;
   case RIGHT:
     bug->face = RIGHT;
     bug->x += BUG_SPEED;

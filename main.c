@@ -1,6 +1,7 @@
 #include "bug.h"
 #include "direction.h"
 #include "engine.h"
+#include "input.h"
 #include "logging.h"
 #include "state.h"
 #include <SDL2/SDL.h>
@@ -103,65 +104,7 @@ void quit() {
 
 void update() {
   state->tick++;
-
-  { /* key presses */
-    SDL_Event event;
-    SDL_PollEvent(&event);
-    switch (event.type) {
-    case SDL_QUIT:
-      quit();
-    default:
-      break;
-    }
-  }
-
-  { /* held keys */
-    const Uint8 *keys = SDL_GetKeyboardState(NULL);
-    if (keys[SDL_SCANCODE_RIGHT])
-      bug_move(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (keys[SDL_SCANCODE_DOWN])
-      bug_move(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (keys[SDL_SCANCODE_LEFT])
-      bug_move(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (keys[SDL_SCANCODE_UP])
-      bug_move(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (keys[SDL_SCANCODE_ESCAPE])
-      quit();
-  }
-
-  { /* when the left mouse button is held move toward the cursor unless it's
-       so close that we'd overshoot */
-    int x, y, dx, dy;
-    if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-      y = state->engine->scaled_window_height - y; // so y increases upward
-      dx = x - (state->bug->x * RENDERER_SCALE);
-      dy = y - (state->bug->y * RENDERER_SCALE);
-      if (dx > 0 && dx > BUG_SPEED)
-        bug_move(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
-      if (dy < 0 && dy < -BUG_SPEED)
-        bug_move(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
-      if (dx < 0 && dx < -BUG_SPEED)
-        bug_move(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
-      if (dy > 0 && dy > BUG_SPEED)
-        bug_move(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
-    }
-  }
-
-  /* game controller */
-  if (state->engine->controller) {
-    if (SDL_GameControllerGetButton(state->engine->controller,
-                                    SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
-      bug_move(state->bug, RIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (SDL_GameControllerGetButton(state->engine->controller,
-                                    SDL_CONTROLLER_BUTTON_DPAD_DOWN))
-      bug_move(state->bug, DOWN, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (SDL_GameControllerGetButton(state->engine->controller,
-                                    SDL_CONTROLLER_BUTTON_DPAD_LEFT))
-      bug_move(state->bug, LEFT, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (SDL_GameControllerGetButton(state->engine->controller,
-                                    SDL_CONTROLLER_BUTTON_DPAD_UP))
-      bug_move(state->bug, UP, WINDOW_WIDTH, WINDOW_HEIGHT);
-  }
+  input_handle_events(state, quit);
 }
 
 void draw() {
