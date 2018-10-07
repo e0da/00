@@ -3,13 +3,13 @@
 #include "state.h"
 #include <SDL2/SDL.h>
 
-void input_handle_events(State *state, void (*quit_callback)(void)) {
+void input_handle_events(State *state, void (*quit_callback)(State *)) {
   { /* key presses */
     SDL_Event event;
     SDL_PollEvent(&event);
     switch (event.type) {
     case SDL_QUIT:
-      quit_callback();
+      quit_callback(state);
     default:
       break;
     }
@@ -31,7 +31,7 @@ void input_handle_events(State *state, void (*quit_callback)(void)) {
     if (keys[SDL_SCANCODE_UP])
       bug_move(bug, UP, window_width, window_height);
     if (keys[SDL_SCANCODE_ESCAPE])
-      quit_callback();
+      quit_callback(state);
   }
 
   { /* when the left mouse button is held move toward the cursor unless it's

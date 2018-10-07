@@ -24,32 +24,32 @@ static const char *WINDOW_TITLE = "00: o hai windoe";
 static const int WINDOW_WIDTH = 1024;
 static const int WINDOW_HEIGHT = 768;
 
-bool init(void);
-void iterate(void);
-void quit(void);
+bool init(State **state);
+void iterate(State *state);
+void quit(State *state);
 
-void update(void);
+void update(State *state);
 
-void draw(void);
-void draw_background(void);
-void draw_bug(void);
-
-// Static because iterate must be (void (*f)(void)) for Emscripten
-static State *state;
+void draw(State *state);
+void draw_background(State *state);
+void draw_bug(State *state);
 
 int main() {
+  State *state;
+  init(&state);
 #ifdef __EMSCRIPTEN__
   static const int use_request_animation_frame = 0;
   static const int simulate_infinite_loop = 1;
-  emscripten_set_main_loop(iterate, use_request_animation_frame,
-                           simulate_infinite_loop);
+  emscripten_set_main_loop_arg((void (*)(void *))iterate, state,
+                               use_request_animation_frame,
+                               simulate_infinite_loop);
 #else
   while (true)
-    iterate();
+    iterate(state);
 #endif
 }
 
-bool init() {
+bool init(State **state) {
   Engine *engine =
       engine_create(WINDOW_WIDTH, WINDOW_HEIGHT, RENDERER_SCALE, WINDOW_TITLE);
   if (!engine) {
@@ -65,24 +65,20 @@ bool init() {
     return false;
   }
   State initialState = {.tick = 0, .engine = engine, .bug = bug};
-  state = state_create(&initialState);
-  if (!state) {
+  *state = state_create(&initialState);
+  if (!*state) {
     WARN("%s:%d: state_create failed", __FILE__, __LINE__);
     return false;
   }
   return true;
 }
 
-void iterate() {
-  if (!state && !init()) {
-    WARN("%s:%d: init failed", __FILE__, __LINE__);
-    return;
-  }
-  update();
-  draw();
+void iterate(State *state) {
+  update(state);
+  draw(state);
 }
 
-void quit() {
+void quit(State *state) {
   if (!state) {
     WARN("%s:%d: state is NULL while quitting. WEIRD!", __FILE__, __LINE__);
     return;
@@ -102,25 +98,25 @@ void quit() {
 #endif
 }
 
-void update() {
+void update(State *state) {
   state->tick++;
   input_handle_events(state, quit);
 }
 
-void draw() {
-  draw_background();
-  draw_bug();
+void draw(State *state) {
+  draw_background(state);
+  draw_bug(state);
   SDL_RenderPresent(state->engine->renderer);
 }
 
-void draw_background() {
+void draw_background(State *state) {
   const uint32_t green = 0xa4ce56ff;
   SDL_SetRenderDrawColor(state->engine->renderer, R(green), G(green), B(green),
                          A(green));
   SDL_RenderClear(state->engine->renderer);
 }
 
-void draw_bug() {
+void draw_bug(State *state) {
   const int offset = -BUG_SIZE / 2;
   SDL_Rect dst = {.w = BUG_SIZE,
                   .h = BUG_SIZE,
