@@ -18,58 +18,69 @@ State *create_state(const State *initialState) {
 
 void destroy_state(State *state) { free(state); }
 
-static void handle_sdl_events(State *state, void (*quit_callback)(State *));
-static void handle_keyboard_events(State *state,
-                                   void (*quit_callback)(State *));
+static void handle_sdl_events(State *state);
+static void handle_keyboard_events(State *state);
 static void handle_mouse_events(State *state);
 static void handle_controller_events(State *state);
 
-void handle_events(State *state, void (*quit_callback)(State *)) {
-  handle_sdl_events(state, quit_callback);
-  handle_keyboard_events(state, quit_callback);
+void handle_events(State *state) {
+  handle_sdl_events(state);
+  handle_keyboard_events(state);
   handle_mouse_events(state);
   handle_controller_events(state);
 }
 
-void emit(State *state, Event event, void **payload) {
+void emit(State *state, Event event, void *payload) {
   switch (event) {
   case NO_EVENT:
     break;
   case TICK:
     state->tick++;
     break;
+  case MOVE_BUG:
+    move_bug(state->bug, ((DirectionPayload *)payload)->direction,
+             state->engine->window_width, state->engine->window_height);
+    break;
+  case QUITTING:
+    state->quit(state);
+    break;
   }
 }
 
-static void handle_sdl_events(State *state, void (*quit_callback)(State *)) {
+static void handle_sdl_events(State *state) {
   SDL_Event event;
   SDL_PollEvent(&event);
   switch (event.type) {
   case SDL_QUIT:
-    quit_callback(state);
+    emit(state, QUITTING, NULL);
   default:
     break;
   }
 }
 
-static void handle_keyboard_events(State *state,
-                                   void (*quit_callback)(State *)) {
-  Bug *bug = state->bug;
-  Engine *engine = state->engine;
-  const int window_width = engine->window_width;
-  const int window_height = engine->window_height;
+static void handle_keyboard_events(State *state) {
   /* held keys */
   const Uint8 *keys = SDL_GetKeyboardState(NULL);
-  if (keys[SDL_SCANCODE_RIGHT])
-    move_bug(bug, RIGHT, window_width, window_height);
-  if (keys[SDL_SCANCODE_DOWN])
-    move_bug(bug, DOWN, window_width, window_height);
+  Direction x_direction = NO_DIRECTION;
   if (keys[SDL_SCANCODE_LEFT])
-    move_bug(bug, LEFT, window_width, window_height);
+    x_direction = LEFT;
+  if (keys[SDL_SCANCODE_RIGHT])
+    x_direction = RIGHT;
+  Direction y_direction = NO_DIRECTION;
   if (keys[SDL_SCANCODE_UP])
-    move_bug(bug, UP, window_width, window_height);
+    y_direction = UP;
+  if (keys[SDL_SCANCODE_DOWN])
+    y_direction = DOWN;
+  if (x_direction) {
+    DirectionPayload payload = {.direction = x_direction};
+    emit(state, MOVE_BUG, &payload);
+  }
+  if (y_direction) {
+    DirectionPayload payload = {.direction = y_direction};
+    emit(state, MOVE_BUG, &payload);
+  }
   if (keys[SDL_SCANCODE_ESCAPE])
-    quit_callback(state);
+    emit(state, QUITTING, NULL);
 }
 
 static void handle_mouse_events(State *state) {

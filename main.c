@@ -59,8 +59,11 @@ bool init(State **state) {
     WARN("%s:%d: create_bug failed", __FILE__, __LINE__);
     return false;
   }
-  State initialState = {
-      .tick = 0, .engine = engine, .bug = bug, .bug_texture = bug_texture};
+  State initialState = {.tick = 0,
+                        .engine = engine,
+                        .bug = bug,
+                        .bug_texture = bug_texture,
+                        .quit = quit};
   *state = create_state(&initialState);
   if (!*state) {
     WARN("%s:%d: state_create failed", __FILE__, __LINE__);
@@ -71,7 +74,7 @@ bool init(State **state) {
 
 void iterate(State *state) {
   emit(state, TICK, NULL);
-  handle_events(state, quit);
+  handle_events(state);
   draw(state);
 }
 
