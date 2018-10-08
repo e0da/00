@@ -21,5 +21,4 @@ void engine_destroy(Engine *engine);
 
 SDL_Texture *engine_create_texture_from_file(SDL_Renderer *renderer,
                                              const char *file);
-
 #endif

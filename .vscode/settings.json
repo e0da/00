@@ -14,6 +14,8 @@
     "types.h": "c",
     "state.h": "c",
     "direction.h": "c",
-    "sdl.h": "c"
+    "sdl.h": "c",
+    "drawing.h": "c",
+    "input.h": "c"
   }
 }

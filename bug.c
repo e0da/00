@@ -29,7 +29,8 @@ Bug *bug_create(int x, int y) {
 
 void bug_destroy(Bug *bug) { free(bug); }
 
-void bug_move(Bug *bug, Direction direction, int width, int height) {
+void bug_move(Bug *bug, Direction direction, int world_width,
+              int world_height) {
   switch (direction) {
   case NO_DIRECTION:
     break;
@@ -52,10 +53,10 @@ void bug_move(Bug *bug, Direction direction, int width, int height) {
   const int half_h = bug->h / 2;
   if (bug->x - half_w < 0)
     bug->x = 0 + half_w;
-  if (bug->x + half_w > width)
-    bug->x = width - half_w;
+  if (bug->x + half_w > world_width)
+    bug->x = world_width - half_w;
   if (bug->y - half_h < 0)
     bug->y = 0 + half_h;
-  if (bug->y + half_h > height)
-    bug->y = height - half_h;
+  if (bug->y + half_h > world_height)
+    bug->y = world_height - half_h;
 }

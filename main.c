@@ -49,9 +49,8 @@ bool init(State **state) {
     WARN("%s:%d: engine_create failed", __FILE__, __LINE__);
     return false;
   }
-  SDL_Renderer *renderer = engine->renderer;
   SDL_Texture *bug_texture =
-      engine_create_texture_from_file(renderer, BUG_IMAGE_ASSET);
+      engine_create_texture_from_file(engine->renderer, BUG_IMAGE_ASSET);
   if (!bug_texture) {
     WARN("%s:%d: engine_create_texture_from_file failed", __FILE__, __LINE__);
     return NULL;
