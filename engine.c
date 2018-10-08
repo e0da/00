@@ -50,7 +50,7 @@ Engine *engine_create(const int window_width, const int window_height,
                                 .window_title = window_title};
   Engine *engine = (Engine *)malloc(sizeof(Engine));
   if (!engine) {
-    printf("%s:%d: Allocating Engine failed", __FILE__, __LINE__);
+    WARN("%s:%d: Allocating Engine failed", __FILE__, __LINE__);
     return NULL;
   }
   memcpy(engine, &initialEngine, sizeof(Engine));

@@ -4,20 +4,17 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-static const int bug_scale = 5;
-static const int bug_image_width = 32;
+static const char *BUG_IMAGE_ASSET = "assets/bug.png";
+static const int BUG_SIZE = 32;
+static const int BUG_SPEED = 2;
 
-const int BUG_SIZE = bug_image_width * bug_scale;
-const int BUG_SPEED = 10;
-
-Bug *bug_create(int x, int y, int w, int h, SDL_Renderer *renderer) {
+Bug *bug_create(int x, int y, SDL_Renderer *renderer) {
   Bug *bug = (Bug *)malloc(sizeof(Bug));
   if (!bug) {
     WARN("%s:%d: Allocating Bug failed", __FILE__, __LINE__);
     return NULL;
   }
-  static const char *bug_image_asset = "assets/bug.png";
-  SDL_Surface *surface = IMG_Load(bug_image_asset);
+  SDL_Surface *surface = IMG_Load(BUG_IMAGE_ASSET);
   if (!surface) {
     WARN("%s:%d: IMG_Load failed -- IMG_Error: %s", __FILE__, __LINE__,
          IMG_GetError());
@@ -32,8 +29,10 @@ Bug *bug_create(int x, int y, int w, int h, SDL_Renderer *renderer) {
   SDL_FreeSurface(surface);
   bug->x = x;
   bug->y = y;
-  bug->w = w;
-  bug->h = h;
+  bug->w = BUG_SIZE;
+  bug->h = BUG_SIZE;
+  bug->size = BUG_SIZE;
+  bug->speed = BUG_SPEED;
   bug->face = RIGHT;
   bug->texture = texture;
   return bug;

@@ -11,14 +11,14 @@
 // TODO I don't like how calculating RENDERER_SCALE works
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
-static const int RENDERER_SCALE = 1;
+static const int RENDERER_SCALE = 3;
 #else
-static const int RENDERER_SCALE = 2;
+static const int RENDERER_SCALE = 5;
 #endif
 
 static const char *WINDOW_TITLE = "00: o hai windoe";
-static const int WINDOW_WIDTH = 1024;
-static const int WINDOW_HEIGHT = 768;
+#define WINDOW_HEIGHT 240
+#define WINDOW_WIDTH ((WINDOW_HEIGHT * 16) / 9)
 
 bool init(State **state);
 void iterate(State *state);
@@ -48,8 +48,7 @@ bool init(State **state) {
   }
   static const int bug_init_x = WINDOW_WIDTH / 2;
   static const int bug_init_y = WINDOW_HEIGHT / 2;
-  Bug *bug =
-      bug_create(bug_init_x, bug_init_y, BUG_SIZE, BUG_SIZE, engine->renderer);
+  Bug *bug = bug_create(bug_init_x, bug_init_y, engine->renderer);
   if (!bug) {
     WARN("%s:%d: bug_create failed", __FILE__, __LINE__);
     return false;

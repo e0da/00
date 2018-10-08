@@ -43,13 +43,13 @@ void input_handle_events(State *state, void (*quit_callback)(State *)) {
       dx = x - (bug->x * renderer_scale);
       dy = y - (bug->y * renderer_scale);
       Direction direction = NO_DIRECTION;
-      if (dx > 0 && dx > BUG_SPEED)
+      if (dx > 0 && dx > bug->speed)
         direction = RIGHT;
-      if (dy < 0 && dy < -BUG_SPEED)
+      if (dy < 0 && dy < -bug->speed)
         direction = DOWN;
-      if (dx < 0 && dx < -BUG_SPEED)
+      if (dx < 0 && dx < -bug->speed)
         direction = LEFT;
-      if (dy > 0 && dy > BUG_SPEED)
+      if (dy > 0 && dy > bug->speed)
         direction = UP;
       bug_move(bug, direction, window_width, window_height);
     }

@@ -23,9 +23,9 @@ void draw_background(SDL_Renderer *renderer) {
 }
 
 void draw_bug(SDL_Renderer *renderer, Bug *bug, int window_height) {
-  const int offset = -BUG_SIZE / 2;
-  SDL_Rect dst = {.w = BUG_SIZE,
-                  .h = BUG_SIZE,
+  const int offset = -bug->w / 2;
+  SDL_Rect dst = {.w = bug->w,
+                  .h = bug->h,
                   .x = bug->x + offset,
                   .y = (window_height - bug->y) + offset};
   const SDL_RendererFlip flip =
