@@ -1,7 +1,6 @@
 #include "bug.h"
 #include "drawing.h"
 #include "engine.h"
-#include "input.h"
 #include "logging.h"
 #include "state.h"
 #include <SDL2/SDL.h>
@@ -62,7 +61,7 @@ bool init(State **state) {
   }
   State initialState = {
       .tick = 0, .engine = engine, .bug = bug, .bug_texture = bug_texture};
-  *state = state_create(&initialState);
+  *state = create_state(&initialState);
   if (!*state) {
     WARN("%s:%d: state_create failed", __FILE__, __LINE__);
     return false;
@@ -72,7 +71,7 @@ bool init(State **state) {
 
 void iterate(State *state) {
   state->tick++;
-  input_handle_events(state, quit);
+  handle_events(state, quit);
   draw(state);
 }
 
@@ -90,7 +89,7 @@ void quit(State *state) {
   if (state->engine)
     engine_destroy(state->engine);
   state->engine = NULL;
-  state_destroy(state);
+  destroy_state(state);
   state = NULL;
 #ifdef __EMSCRIPTEN__
   emscripten_force_exit(0);

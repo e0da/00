@@ -12,7 +12,9 @@ typedef struct State {
   SDL_Texture *bug_texture;
 } State;
 
-State *state_create(const State *initialState);
-void state_destroy(State *state);
+State *create_state(const State *initialState);
+void destroy_state(State *state);
+
+void handle_events(State *state, void (*quit_callback)(State *state));
 
 #endif

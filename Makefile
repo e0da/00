@@ -22,14 +22,14 @@ CLEAN_ARTIFACTS:=$(BIN) index.* *.o
 
 BUILD_WEB_TEMPDIR:=$(shell tempfile)
 
-BIN_OBJS=main.o bug.o drawing.o engine.o input.o state.o
+BIN_OBJS=main.o bug.o drawing.o engine.o state.o
 
 all: $(BIN)
 
 $(BIN): $(BIN_OBJS)
 	$(CC) -o $@ $(BIN_OBJS) $(CFLAGS) $(LIBS)
 
-main.o: main.c bug.h drawing.h engine.h input.h logging.h state.h
+main.o: main.c bug.h drawing.h engine.h logging.h state.h
 	$(CC) -c -o $@ main.c $(CFLAGS)
 
 bug.o: bug.c bug.h direction.h logging.h
@@ -40,9 +40,6 @@ drawing.o: drawing.h drawing.c logging.h state.h
 
 engine.o: engine.h engine.c logging.h
 	$(CC) -c -o $@ engine.c $(CFLAGS)
-
-input.o: input.h input.c input.h direction.h state.h
-	$(CC) -c -o $@ input.c $(CFLAGS)
 
 state.o: state.c state.h bug.c engine.h logging.h
 	$(CC) -c -o $@ state.c $(CFLAGS)
