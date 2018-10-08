@@ -70,7 +70,7 @@ bool init(State **state) {
 }
 
 void iterate(State *state) {
-  state->tick++;
+  emit(state, TICK, NULL);
   handle_events(state, quit);
   draw(state);
 }

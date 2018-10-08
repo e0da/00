@@ -31,6 +31,16 @@ void handle_events(State *state, void (*quit_callback)(State *)) {
   handle_controller_events(state);
 }
 
+void emit(State *state, Event event, void **payload) {
+  switch (event) {
+  case NO_EVENT:
+    break;
+  case TICK:
+    state->tick++;
+    break;
+  }
+}
+
 static void handle_sdl_events(State *state, void (*quit_callback)(State *)) {
   SDL_Event event;
   SDL_PollEvent(&event);
