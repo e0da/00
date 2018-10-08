@@ -2,6 +2,7 @@
 #include "direction.h"
 #include "state.h"
 #include <SDL2/SDL.h>
+#include <math.h>
 
 void input_handle_events(State *state, void (*quit_callback)(State *)) {
   { /* key presses */
@@ -36,22 +37,27 @@ void input_handle_events(State *state, void (*quit_callback)(State *)) {
 
   { /* when the left mouse button is held move toward the cursor unless it's
        so close that we'd overshoot */
-    int x, y, dx, dy;
-    if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-      y = engine->scaled_window_height - y; // so y increases upward
+    int pointer_x, pointer_y;
+    if (SDL_GetMouseState(&pointer_x, &pointer_y) &
+        SDL_BUTTON(SDL_BUTTON_LEFT)) {
+      // Invert pointer_y so y increases upward
+      pointer_y = engine->scaled_window_height - pointer_y;
       const int renderer_scale = engine->renderer_scale;
-      dx = x - (bug->x * renderer_scale);
-      dy = y - (bug->y * renderer_scale);
-      Direction direction = NO_DIRECTION;
-      if (dx > 0 && dx > bug->speed)
-        direction = RIGHT;
-      if (dy < 0 && dy < -bug->speed)
-        direction = DOWN;
-      if (dx < 0 && dx < -bug->speed)
-        direction = LEFT;
-      if (dy > 0 && dy > bug->speed)
-        direction = UP;
-      bug_move(bug, direction, window_width, window_height);
+      const int distance_x = pointer_x - (bug->x * renderer_scale);
+      const int distance_y = pointer_y - (bug->y * renderer_scale);
+      const int threshold = bug->speed * renderer_scale;
+      if (abs(distance_x) > threshold) {
+        if (distance_x > 0)
+          bug_move(bug, RIGHT, window_width, window_height);
+        if (distance_x < 0)
+          bug_move(bug, LEFT, window_width, window_height);
+      }
+      if (abs(distance_y) > threshold) {
+        if (distance_y < 0)
+          bug_move(bug, DOWN, window_width, window_height);
+        if (distance_y > 0)
+          bug_move(bug, UP, window_width, window_height);
+      }
     }
   }
 
