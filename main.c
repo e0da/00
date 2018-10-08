@@ -1,16 +1,12 @@
 #include "bug.h"
 #include "direction.h"
+#include "drawing.h"
 #include "engine.h"
 #include "input.h"
 #include "logging.h"
 #include "state.h"
 #include <SDL2/SDL.h>
 #include <stdbool.h>
-
-#define R(X) ((X & 0xff000000) >> 24)
-#define G(X) ((X & 0x00ff0000) >> 16)
-#define B(X) ((X & 0x0000ff00) >> 8)
-#define A(X) (X & 0x000000ff)
 
 // TODO I don't like how calculating RENDERER_SCALE works
 #ifdef __EMSCRIPTEN__
@@ -27,12 +23,6 @@ static const int WINDOW_HEIGHT = 768;
 bool init(State **state);
 void iterate(State *state);
 void quit(State *state);
-
-void update(State *state);
-
-void draw(State *state);
-void draw_background(State *state);
-void draw_bug(State *state);
 
 int main() {
   State *state;
@@ -74,7 +64,8 @@ bool init(State **state) {
 }
 
 void iterate(State *state) {
-  update(state);
+  state->tick++;
+  input_handle_events(state, quit);
   draw(state);
 }
 
@@ -96,37 +87,4 @@ void quit(State *state) {
 #else
   exit(0);
 #endif
-}
-
-void update(State *state) {
-  state->tick++;
-  input_handle_events(state, quit);
-}
-
-void draw(State *state) {
-  draw_background(state);
-  draw_bug(state);
-  SDL_RenderPresent(state->engine->renderer);
-}
-
-void draw_background(State *state) {
-  const uint32_t green = 0xa4ce56ff;
-  SDL_SetRenderDrawColor(state->engine->renderer, R(green), G(green), B(green),
-                         A(green));
-  SDL_RenderClear(state->engine->renderer);
-}
-
-void draw_bug(State *state) {
-  const int offset = -BUG_SIZE / 2;
-  SDL_Rect dst = {.w = BUG_SIZE,
-                  .h = BUG_SIZE,
-                  .x = state->bug->x + offset,
-                  .y = (WINDOW_HEIGHT - state->bug->y) + offset};
-  const SDL_RendererFlip flip =
-      state->bug->face == LEFT ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-  if (SDL_RenderCopyEx(state->engine->renderer, state->bug->texture, NULL, &dst,
-                       0, 0, flip) < 0) {
-    WARN("%s:%d: SDL_RenderCopyEx failed -- SDL_Error: %s", __FILE__, __LINE__,
-         SDL_GetError());
-  }
 }
