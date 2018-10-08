@@ -3,6 +3,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 static bool init_sdl(void);
 static bool init_window(SDL_Window **window, const int width, const int height,
@@ -72,6 +74,24 @@ void engine_destroy(Engine *engine) {
   }
   IMG_Quit();
   SDL_Quit();
+}
+
+SDL_Texture *engine_create_texture_from_file(SDL_Renderer *renderer,
+                                             const char *file) {
+  SDL_Surface *surface = IMG_Load(file);
+  if (!surface) {
+    WARN("%s:%d: IMG_Load failed -- IMG_Error: %s", __FILE__, __LINE__,
+         IMG_GetError());
+    return NULL;
+  }
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+  if (!texture) {
+    WARN("%s:%d: SDL_CreateTextureFromSurface failed -- SDL_Error: %s",
+         __FILE__, __LINE__, SDL_GetError());
+    return NULL;
+  }
+  SDL_FreeSurface(surface);
+  return texture;
 }
 
 static bool init_sdl() {

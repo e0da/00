@@ -1,47 +1,33 @@
 #include "bug.h"
 #include "direction.h"
 #include "logging.h"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <stdlib.h>
+#include <string.h>
 
-static const char *BUG_IMAGE_ASSET = "assets/bug.png";
 static const int BUG_SIZE = 32;
 static const int BUG_SPEED = 2;
 
-Bug *bug_create(int x, int y, SDL_Renderer *renderer) {
+static const Bug initialBug = {.x = 0,
+                               .y = 0,
+                               .w = BUG_SIZE,
+                               .h = BUG_SIZE,
+                               .size = BUG_SIZE,
+                               .speed = BUG_SPEED,
+                               .face = RIGHT};
+
+Bug *bug_create(int x, int y) {
   Bug *bug = (Bug *)malloc(sizeof(Bug));
   if (!bug) {
     WARN("%s:%d: Allocating Bug failed", __FILE__, __LINE__);
     return NULL;
   }
-  SDL_Surface *surface = IMG_Load(BUG_IMAGE_ASSET);
-  if (!surface) {
-    WARN("%s:%d: IMG_Load failed -- IMG_Error: %s", __FILE__, __LINE__,
-         IMG_GetError());
-    return NULL;
-  }
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-  if (!texture) {
-    WARN("%s:%d: SDL_CreateTextureFromSurface failed -- SDL_Error: %s",
-         __FILE__, __LINE__, SDL_GetError());
-    return NULL;
-  }
-  SDL_FreeSurface(surface);
+  memcpy(bug, &initialBug, sizeof(Bug));
   bug->x = x;
   bug->y = y;
-  bug->w = BUG_SIZE;
-  bug->h = BUG_SIZE;
-  bug->size = BUG_SIZE;
-  bug->speed = BUG_SPEED;
-  bug->face = RIGHT;
-  bug->texture = texture;
   return bug;
 }
 
-void bug_destroy(Bug *bug) {
-  SDL_DestroyTexture(bug->texture);
-  free(bug);
-}
+void bug_destroy(Bug *bug) { free(bug); }
 
 void bug_move(Bug *bug, Direction direction, int width, int height) {
   switch (direction) {

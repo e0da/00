@@ -1,5 +1,4 @@
 #include "bug.h"
-#include "direction.h"
 #include "drawing.h"
 #include "engine.h"
 #include "input.h"
@@ -7,6 +6,11 @@
 #include "state.h"
 #include <SDL2/SDL.h>
 #include <stdbool.h>
+
+#define WINDOW_HEIGHT 240
+#define ASPECT_RATIO_X 16
+#define ASPECT_RATIO_Y 9
+#define WINDOW_WIDTH ((WINDOW_HEIGHT * ASPECT_RATIO_X) / ASPECT_RATIO_Y)
 
 // TODO I don't like how calculating RENDERER_SCALE works
 #ifdef __EMSCRIPTEN__
@@ -17,8 +21,7 @@ static const int RENDERER_SCALE = 5;
 #endif
 
 static const char *WINDOW_TITLE = "00: o hai windoe";
-#define WINDOW_HEIGHT 240
-#define WINDOW_WIDTH ((WINDOW_HEIGHT * 16) / 9)
+static const char *BUG_IMAGE_ASSET = "assets/bug.png";
 
 bool init(State **state);
 void iterate(State *state);
@@ -46,14 +49,20 @@ bool init(State **state) {
     WARN("%s:%d: engine_create failed", __FILE__, __LINE__);
     return false;
   }
-  static const int bug_init_x = WINDOW_WIDTH / 2;
-  static const int bug_init_y = WINDOW_HEIGHT / 2;
-  Bug *bug = bug_create(bug_init_x, bug_init_y, engine->renderer);
+  SDL_Renderer *renderer = engine->renderer;
+  SDL_Texture *bug_texture =
+      engine_create_texture_from_file(renderer, BUG_IMAGE_ASSET);
+  if (!bug_texture) {
+    WARN("%s:%d: engine_create_texture_from_file failed", __FILE__, __LINE__);
+    return NULL;
+  }
+  Bug *bug = bug_create(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
   if (!bug) {
     WARN("%s:%d: bug_create failed", __FILE__, __LINE__);
     return false;
   }
-  State initialState = {.tick = 0, .engine = engine, .bug = bug};
+  State initialState = {
+      .tick = 0, .engine = engine, .bug = bug, .bug_texture = bug_texture};
   *state = state_create(&initialState);
   if (!*state) {
     WARN("%s:%d: state_create failed", __FILE__, __LINE__);
@@ -76,6 +85,9 @@ void quit(State *state) {
   if (state->bug)
     bug_destroy(state->bug);
   state->bug = NULL;
+  if (state->bug_texture)
+    SDL_DestroyTexture(state->bug_texture);
+  state->bug_texture = NULL;
   if (state->engine)
     engine_destroy(state->engine);
   state->engine = NULL;

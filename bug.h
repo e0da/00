@@ -2,7 +2,6 @@
 #define BUG_H
 
 #include "direction.h"
-#include <SDL2/SDL.h>
 
 typedef struct Bug {
   int x, y;
@@ -10,10 +9,9 @@ typedef struct Bug {
   int size;
   int speed;
   Direction face;
-  SDL_Texture *texture;
 } Bug;
 
-Bug *bug_create(int x, int y, SDL_Renderer *renderer);
+Bug *bug_create(int x, int y);
 void bug_destroy(Bug *bug);
 
 void bug_move(Bug *bug, Direction direction, int width, int height);

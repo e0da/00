@@ -29,7 +29,7 @@ all: $(BIN)
 $(BIN): $(BIN_OBJS)
 	$(CC) -o $@ $(BIN_OBJS) $(CFLAGS) $(LIBS)
 
-main.o: main.c bug.h direction.h drawing.h engine.h logging.h state.h
+main.o: main.c bug.h drawing.h engine.h input.h logging.h state.h
 	$(CC) -c -o $@ main.c $(CFLAGS)
 
 bug.o: bug.c bug.h direction.h logging.h
@@ -38,7 +38,7 @@ bug.o: bug.c bug.h direction.h logging.h
 drawing.o: drawing.h drawing.c logging.h state.h
 	$(CC) -c -o $@ drawing.c $(CFLAGS)
 
-engine.o: engine.h engine.c direction.h logging.h
+engine.o: engine.h engine.c logging.h
 	$(CC) -c -o $@ engine.c $(CFLAGS)
 
 input.o: input.h input.c input.h direction.h state.h

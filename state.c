@@ -1,5 +1,7 @@
 #include "state.h"
 #include "logging.h"
+#include <stdlib.h>
+#include <string.h>
 
 State *state_create(const State *initialState) {
   State *state = (State *)malloc(sizeof(State));
