@@ -16,11 +16,7 @@ typedef struct State {
 State *create_state(const State *initialState);
 void destroy_state(State *state);
 
-typedef enum Event { NO_EVENT = 0, TICK, MOVE_BUG, QUITTING } Event;
-
-typedef struct DirectionPayload {
-  Direction direction;
-} DirectionPayload;
+typedef enum Event { NO_EVENT = 0, TICK, MOVE_BUG, QUIT } Event;
 
 void handle_events(State *state);
 
