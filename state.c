@@ -51,13 +51,13 @@ static void handle_keyboard_events(State *state,
   /* held keys */
   const Uint8 *keys = SDL_GetKeyboardState(NULL);
   if (keys[SDL_SCANCODE_RIGHT])
-    bug_move(bug, RIGHT, window_width, window_height);
+    move_bug(bug, RIGHT, window_width, window_height);
   if (keys[SDL_SCANCODE_DOWN])
-    bug_move(bug, DOWN, window_width, window_height);
+    move_bug(bug, DOWN, window_width, window_height);
   if (keys[SDL_SCANCODE_LEFT])
-    bug_move(bug, LEFT, window_width, window_height);
+    move_bug(bug, LEFT, window_width, window_height);
   if (keys[SDL_SCANCODE_UP])
-    bug_move(bug, UP, window_width, window_height);
+    move_bug(bug, UP, window_width, window_height);
   if (keys[SDL_SCANCODE_ESCAPE])
     quit_callback(state);
 }
@@ -79,15 +79,15 @@ static void handle_mouse_events(State *state) {
     const int threshold = bug->speed * renderer_scale;
     if (abs(distance_x) > threshold) {
       if (distance_x > 0)
-        bug_move(bug, RIGHT, window_width, window_height);
+        move_bug(bug, RIGHT, window_width, window_height);
       if (distance_x < 0)
-        bug_move(bug, LEFT, window_width, window_height);
+        move_bug(bug, LEFT, window_width, window_height);
     }
     if (abs(distance_y) > threshold) {
       if (distance_y < 0)
-        bug_move(bug, DOWN, window_width, window_height);
+        move_bug(bug, DOWN, window_width, window_height);
       if (distance_y > 0)
-        bug_move(bug, UP, window_width, window_height);
+        move_bug(bug, UP, window_width, window_height);
     }
   }
 }
@@ -101,14 +101,14 @@ static void handle_controller_events(State *state) {
   if (controller) {
     if (SDL_GameControllerGetButton(controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
-      bug_move(bug, RIGHT, window_width, window_height);
+      move_bug(bug, RIGHT, window_width, window_height);
     if (SDL_GameControllerGetButton(controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_DOWN))
-      bug_move(bug, DOWN, window_width, window_height);
+      move_bug(bug, DOWN, window_width, window_height);
     if (SDL_GameControllerGetButton(controller,
                                     SDL_CONTROLLER_BUTTON_DPAD_LEFT))
-      bug_move(bug, LEFT, window_width, window_height);
+      move_bug(bug, LEFT, window_width, window_height);
     if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_UP))
-      bug_move(bug, UP, window_width, window_height);
+      move_bug(bug, UP, window_width, window_height);
   }
 }

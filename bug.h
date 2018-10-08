@@ -11,9 +11,9 @@ typedef struct Bug {
   Direction face;
 } Bug;
 
-Bug *bug_create(int x, int y);
-void bug_destroy(Bug *bug);
+Bug *create_bug(int x, int y);
+void destroy_bug(Bug *bug);
 
-void bug_move(Bug *bug, Direction direction, int width, int height);
+void move_bug(Bug *bug, Direction direction, int width, int height);
 
 #endif

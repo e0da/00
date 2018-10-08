@@ -15,7 +15,7 @@ static const Bug initialBug = {.x = 0,
                                .speed = BUG_SPEED,
                                .face = RIGHT};
 
-Bug *bug_create(int x, int y) {
+Bug *create_bug(int x, int y) {
   Bug *bug = (Bug *)malloc(sizeof(Bug));
   if (!bug) {
     WARN("%s:%d: Allocating Bug failed", __FILE__, __LINE__);
@@ -27,9 +27,9 @@ Bug *bug_create(int x, int y) {
   return bug;
 }
 
-void bug_destroy(Bug *bug) { free(bug); }
+void destroy_bug(Bug *bug) { free(bug); }
 
-void bug_move(Bug *bug, Direction direction, int world_width,
+void move_bug(Bug *bug, Direction direction, int world_width,
               int world_height) {
   switch (direction) {
   case NO_DIRECTION:

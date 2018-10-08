@@ -54,9 +54,9 @@ bool init(State **state) {
     WARN("%s:%d: engine_create_texture_from_file failed", __FILE__, __LINE__);
     return NULL;
   }
-  Bug *bug = bug_create(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+  Bug *bug = create_bug(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
   if (!bug) {
-    WARN("%s:%d: bug_create failed", __FILE__, __LINE__);
+    WARN("%s:%d: create_bug failed", __FILE__, __LINE__);
     return false;
   }
   State initialState = {
@@ -81,7 +81,7 @@ void quit(State *state) {
     return;
   }
   if (state->bug)
-    bug_destroy(state->bug);
+    destroy_bug(state->bug);
   state->bug = NULL;
   if (state->bug_texture)
     SDL_DestroyTexture(state->bug_texture);
