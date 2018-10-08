@@ -14,7 +14,7 @@ static bool init_renderer(SDL_Renderer **renderer, SDL_Window *window,
 static bool init_image(void);
 static bool init_controller(SDL_GameController **controller);
 
-Engine *engine_create(const int window_width, const int window_height,
+Engine *create_engine(const int window_width, const int window_height,
                       const int renderer_scale, const char *window_title) {
   const int scaled_window_width = window_width * renderer_scale;
   const int scaled_window_height = window_height * renderer_scale;
@@ -59,7 +59,7 @@ Engine *engine_create(const int window_width, const int window_height,
   return engine;
 }
 
-void engine_destroy(Engine *engine) {
+void destroy_engine(Engine *engine) {
   if (engine->controller) {
     SDL_GameControllerClose(engine->controller);
     engine->controller = NULL;
@@ -76,7 +76,7 @@ void engine_destroy(Engine *engine) {
   SDL_Quit();
 }
 
-SDL_Texture *engine_create_texture_from_file(SDL_Renderer *renderer,
+SDL_Texture *create_texture_from_file(SDL_Renderer *renderer,
                                              const char *file) {
   SDL_Surface *surface = IMG_Load(file);
   if (!surface) {

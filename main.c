@@ -43,15 +43,15 @@ int main() {
 
 bool init(State **state) {
   Engine *engine =
-      engine_create(WINDOW_WIDTH, WINDOW_HEIGHT, RENDERER_SCALE, WINDOW_TITLE);
+      create_engine(WINDOW_WIDTH, WINDOW_HEIGHT, RENDERER_SCALE, WINDOW_TITLE);
   if (!engine) {
-    WARN("%s:%d: engine_create failed", __FILE__, __LINE__);
+    WARN("%s:%d: create_engine failed", __FILE__, __LINE__);
     return false;
   }
   SDL_Texture *bug_texture =
-      engine_create_texture_from_file(engine->renderer, BUG_IMAGE_ASSET);
+      create_texture_from_file(engine->renderer, BUG_IMAGE_ASSET);
   if (!bug_texture) {
-    WARN("%s:%d: engine_create_texture_from_file failed", __FILE__, __LINE__);
+    WARN("%s:%d: create_texture_from_file failed", __FILE__, __LINE__);
     return NULL;
   }
   Bug *bug = create_bug(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
@@ -87,7 +87,7 @@ void quit(State *state) {
     SDL_DestroyTexture(state->bug_texture);
   state->bug_texture = NULL;
   if (state->engine)
-    engine_destroy(state->engine);
+    destroy_engine(state->engine);
   state->engine = NULL;
   destroy_state(state);
   state = NULL;
