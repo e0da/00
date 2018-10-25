@@ -6,3 +6,9 @@ index.wasm
 index.wasm.map
 index.wast
 *.o
+
+# cmake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
